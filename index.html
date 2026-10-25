@@ -1,0 +1,2707 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>伊正品格・期末班級評語智能配搭及生成系統 (84句改善勸勉擴充版)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&family=Noto+Serif+HK:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans HK', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+    .serif-text {
+      font-family: 'Noto Serif HK', serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .sentence-card {
+      transition: all 0.15s ease-in-out;
+    }
+    .sentence-card:hover {
+      transform: translateY(-1px);
+    }
+    .sentence-card.selected {
+      border-color: #0d9488;
+      background-color: #f0fdfa;
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-black text-xl tracking-wider border border-white/25 shadow-inner">
+          伊正
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg md:text-xl font-bold tracking-wide">伊利沙伯中學舊生會小學・期末班評智能配搭系統</h1>
+            <span class="hidden sm:inline-block text-xs bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full">84句改善建議擴充版</span>
+          </div>
+          <p class="text-xs text-teal-100">融合《18個伊正品格126句》×《服務生36句＋班務20句》×《6大類共84句改善勸勉》｜連標點嚴格 ≤ 100字</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="switchMainView('builder')" id="nav-builder" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-white text-teal-900 shadow transition">
+          ✍️ 評語配搭工作台
+        </button>
+        <button onclick="switchMainView('converter')" id="nav-converter" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium bg-teal-800/70 hover:bg-teal-700 text-teal-100 border border-teal-600/50 transition">
+          📚 18種學生畫像轉換庫 & 2627範例
+        </button>
+        <button onclick="switchMainView('saved')" id="nav-saved" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium bg-teal-800/70 hover:bg-teal-700 text-teal-100 border border-teal-600/50 transition flex items-center space-x-1">
+          <span>📋 已存班級名單</span>
+          <span id="saved-count-badge" class="bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.2 rounded-full text-xs">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-5">
+
+    <!-- VIEW 1: BUILDER WORKSPACE -->
+    <div id="view-builder" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Interactive Step-by-Step Selector (7 cols) -->
+      <div class="lg:col-span-7 space-y-5">
+
+        <!-- Student Profile Bar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-bold text-slate-500 mb-1">學生姓名（自動代入評語首字）</label>
+              <div class="relative">
+                <input type="text" id="student-name" value="卓瑋" oninput="handleNameOrPronounChange()" placeholder="例如：卓瑋、楚悠"
+                  class="w-full pl-3 pr-16 py-2 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 text-sm font-bold text-slate-800 outline-none">
+                <button onclick="pickRandomSampleStudent()" class="absolute right-1.5 top-1.5 px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition" title="隨機代入名字">
+                  🎲 範例
+                </button>
+              </div>
+            </div>
+
+            <div class="sm:col-span-5">
+              <label class="block text-xs font-bold text-slate-500 mb-1">人稱代名詞偏好（自動替換句中「該生」）</label>
+              <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
+                <button onclick="setPronoun('其')" id="pronoun-qi" class="pronoun-btn py-1.5 rounded-lg text-xs font-bold bg-white text-teal-800 shadow-sm transition">其 (省字)</button>
+                <button onclick="setPronoun('該生')" id="pronoun-gaisheng" class="pronoun-btn py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition">該生 (原句)</button>
+                <button onclick="setPronoun('他')" id="pronoun-ta1" class="pronoun-btn py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition">他 (男)</button>
+                <button onclick="setPronoun('她')" id="pronoun-ta2" class="pronoun-btn py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition">她 (女)</button>
+              </div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-500 mb-1">快速智能配搭</label>
+              <button onclick="openQuickArchetypeModal()" class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1 transition shadow-sm">
+                <span>⚡ 典型學生一鍵配搭</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Navigation Tabs -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="grid grid-cols-4 border-b border-slate-200 bg-slate-50">
+            <button onclick="switchStep(1)" id="step-tab-1" class="step-tab py-3 px-2 text-center border-b-2 border-teal-600 bg-white font-bold text-teal-800 text-xs sm:text-sm transition">
+              <span class="block text-[11px] text-teal-600 font-semibold">步驟 1 (必選)</span>
+              18個伊正品格
+            </button>
+            <button onclick="switchStep(2)" id="step-tab-2" class="step-tab py-3 px-2 text-center border-b-2 border-transparent font-medium text-slate-600 hover:text-slate-900 text-xs sm:text-sm transition relative">
+              <span class="block text-[11px] text-slate-400">步驟 2 (肯定與亮點)</span>
+              服務生/班務職務
+            </button>
+            <button onclick="switchStep(3)" id="step-tab-3" class="step-tab py-3 px-2 text-center border-b-2 border-transparent font-medium text-slate-600 hover:text-slate-900 text-xs sm:text-sm transition relative">
+              <span class="block text-[11px] text-slate-400">步驟 3 (84句建議)</span>
+              具體改善與勸勉
+              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" title="每細項已擴充至14句（共84句）"></span>
+            </button>
+            <button onclick="switchStep(4)" id="step-tab-4" class="step-tab py-3 px-2 text-center border-b-2 border-transparent font-medium text-slate-600 hover:text-slate-900 text-xs sm:text-sm transition">
+              <span class="block text-[11px] text-slate-400">步驟 4 (收結)</span>
+              期許與勉勵結語
+            </button>
+          </div>
+
+          <!-- STEP 1 CONTENT: 18 QPS POSITIVE CHARACTERS -->
+          <div id="step-content-1" class="p-4 sm:p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>步驟 1：選擇「18個伊正品格」開篇讚賞</span>
+                  <span class="text-xs font-normal bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded-full">共 126 條具體表現例句</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">點擊下方 18 個伊正品格，即可選擇融合《班別_評語資料庫》具體日常表現的開篇雅言：</p>
+              </div>
+            </div>
+
+            <!-- 6 Virtues & 18 Characters Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2" id="character-grid">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Selected Character Info & Examples -->
+            <div id="character-detail-box" class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+                <div class="flex items-center space-x-2">
+                  <span id="active-char-badge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-rose-500 shadow-sm">感恩</span>
+                  <span id="active-char-category" class="text-xs font-bold text-slate-500">正向情緒</span>
+                </div>
+                <p id="active-char-def" class="text-xs text-slate-600 font-medium">常向人表達感謝和珍惜，對他人的幫助表達認可和感激。</p>
+              </div>
+
+              <!-- Search filter inside Step 1 -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-500">點選以下具體表現例句（已自動冠上學生姓名）：</span>
+                <input type="text" id="step1-search" oninput="filterStep1Sentences()" placeholder="🔍 搜尋全庫126句 (如：微笑、原諒、發問)..."
+                  class="text-xs px-2.5 py-1 rounded-lg border border-slate-300 focus:border-teal-600 outline-none w-52 bg-white">
+              </div>
+
+              <div id="step1-sentences-list" class="space-y-2 max-h-80 overflow-y-auto custom-scroll pr-1">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2 CONTENT: ROLES (36 SERVICE LEADERS + 20 CLASS ROLES), TALENTS & PROGRESS -->
+          <div id="step-content-2" class="p-4 sm:p-5 space-y-4 hidden">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>步驟 2：肯定與亮點（校內服務生36句、班務職務20句、體藝與進步）</span>
+                  <span class="text-xs bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-300">支援分科科長切換</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">點選下方職務分類即可從 4 條不同側重點的稱讚評語中挑選（如總字數超標，可點擊右側「✂️ 一鍵智能精簡字數」）：</p>
+              </div>
+              <button onclick="selectStepSentence(2, '')" class="text-xs px-2.5 py-1 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-600 font-medium transition">
+                🚫 略過此段 (節省字數)
+              </button>
+            </div>
+
+            <!-- Category Sub-tabs for Step 2 -->
+            <div class="flex flex-wrap gap-1.5" id="step2-cat-tabs">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Quick Role Filter Bar A: Service Leaders (9 roles, 36 sentences) -->
+            <div id="service-role-quick-filter" class="bg-teal-50/80 border border-teal-200/80 rounded-xl p-2.5 flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-bold text-teal-800 mr-1">🎖️ 篩選服務生職位（各4句）：</span>
+              <button onclick="filterServiceRole('ALL')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-700 text-white transition" data-role="ALL">全部顯示 (36句)</button>
+              <button onclick="filterServiceRole('領袖生')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="領袖生">領袖生 (4)</button>
+              <button onclick="filterServiceRole('中文大使')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="中文大使">中文大使 (4)</button>
+              <button onclick="filterServiceRole('英文大使')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="英文大使">英文大使 (4)</button>
+              <button onclick="filterServiceRole('數學大使')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="數學大使">數學大使 (4)</button>
+              <button onclick="filterServiceRole('小老師')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="小老師">小老師 (4)</button>
+              <button onclick="filterServiceRole('體育領袖')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="體育領袖">體育領袖 (4)</button>
+              <button onclick="filterServiceRole('遊戲大使')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="遊戲大使">遊戲大使 (4)</button>
+              <button onclick="filterServiceRole('IT小先鋒')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="IT小先鋒">IT小先鋒 (4)</button>
+              <button onclick="filterServiceRole('圖書館管理員')" class="role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition" data-role="圖書館管理員">圖書館管理員 (4)</button>
+            </div>
+
+            <!-- Quick Role Filter Bar B: Class Duties (5 main roles + 6 subject rep selector) -->
+            <div id="class-role-quick-filter" class="bg-indigo-50/80 border border-indigo-200/80 rounded-xl p-2.5 space-y-2 hidden">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-bold text-indigo-900 mr-1">📋 篩選班務職務（各4句）：</span>
+                <button onclick="filterClassRole('ALL')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-700 text-white transition" data-crole="ALL">全部顯示</button>
+                <button onclick="filterClassRole('班長')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="班長">班長 (4)</button>
+                <button onclick="filterClassRole('各科科長')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="各科科長">各科科長 (4)</button>
+                <button onclick="filterClassRole('午膳長')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="午膳長">午膳長 (4)</button>
+                <button onclick="filterClassRole('IT長')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="IT長">IT長 (4)</button>
+                <button onclick="filterClassRole('康樂大使')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="康樂大使">康樂大使 (4)</button>
+                <button onclick="filterClassRole('其他班務')" class="class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition" data-crole="其他班務">其他班務與表現</button>
+              </div>
+
+              <!-- Subject Rep Specific Subject Selector -->
+              <div id="subject-rep-selector" class="pt-1.5 border-t border-indigo-200/70 flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">📚 選擇科長科目（自動代入句中）：</span>
+                <button onclick="setSubjectRepName('科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-bold bg-amber-600 text-white transition" data-subj="科長">科長 (通用)</button>
+                <button onclick="setSubjectRepName('中文科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="中文科科長">中文科科長</button>
+                <button onclick="setSubjectRepName('英文科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="英文科科長">英文科科長</button>
+                <button onclick="setSubjectRepName('數學科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="數學科科長">數學科科長</button>
+                <button onclick="setSubjectRepName('人文科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="人文科科長">人文科科長</button>
+                <button onclick="setSubjectRepName('科學科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="科學科科長">科學科科長</button>
+                <button onclick="setSubjectRepName('常識科科長')" class="subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition" data-subj="常識科科長">常識科科長</button>
+              </div>
+            </div>
+
+            <div id="step2-sentences-list" class="space-y-2 max-h-96 overflow-y-auto custom-scroll pr-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- STEP 3 CONTENT: CONSTRUCTIVE ADVICE (EXPANDED TO 84 SENTENCES, 14 PER CATEGORY) -->
+          <div id="step-content-3" class="p-4 sm:p-5 space-y-4 hidden">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span>步驟 3：具體改善建議與家校勸勉（轉折段）</span>
+                  <span class="text-xs bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full border border-rose-200">每細項 14 句・共 84 句</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">每個細項均提供 14 句不同情境與長度的勸勉評語，支援關鍵字即時篩選：</p>
+              </div>
+              <input type="text" id="step3-search" oninput="renderStep3Sentences()" placeholder="🔍 搜尋84句建議 (如：文具、書包、朗讀、脾氣)..."
+                class="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-teal-600 outline-none w-60 bg-white">
+            </div>
+
+            <!-- Category Sub-tabs for Step 3 -->
+            <div class="flex flex-wrap gap-1.5" id="step3-cat-tabs">
+              <!-- Populated by JS -->
+            </div>
+
+            <div id="step3-sentences-list" class="space-y-2 max-h-96 overflow-y-auto custom-scroll pr-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- STEP 4 CONTENT: CLOSING ENCOURAGEMENT -->
+          <div id="step-content-4" class="p-4 sm:p-5 space-y-4 hidden">
+            <div>
+              <h2 class="text-sm font-bold text-slate-800">步驟 4：期許與勉勵結語（收結句）</h2>
+              <p class="text-xs text-slate-500">選擇4至10字凝練結尾，完美收結整段評語（注意：如步驟 3 句末已帶結語，可選「不另加結語」）：</p>
+            </div>
+
+            <div id="step4-sentences-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto custom-scroll pr-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Segment Breakdown Visualizer -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">目前配搭結構拆解（點擊各段可跳轉修改）</h3>
+            <button onclick="resetAllSelections()" class="text-xs text-rose-600 hover:text-rose-700 font-medium">🔄 重設為預設範例</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+            <div onclick="switchStep(1)" class="p-2.5 rounded-xl bg-teal-50/70 border border-teal-200 cursor-pointer hover:bg-teal-50 transition">
+              <div class="font-bold text-teal-800 mb-1 flex justify-between">
+                <span>1. 伊正品格</span>
+                <span id="seg1-len" class="text-[11px] text-teal-600">0字</span>
+              </div>
+              <p id="seg1-preview" class="text-slate-700 line-clamp-2"></p>
+            </div>
+            <div onclick="switchStep(2)" class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 cursor-pointer hover:bg-blue-50 transition">
+              <div class="font-bold text-blue-800 mb-1 flex justify-between">
+                <span>2. 服務/班務/亮點</span>
+                <span id="seg2-len" class="text-[11px] text-blue-600">0字</span>
+              </div>
+              <p id="seg2-preview" class="text-slate-700 line-clamp-2"></p>
+            </div>
+            <div onclick="switchStep(3)" class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 cursor-pointer hover:bg-amber-50 transition">
+              <div class="font-bold text-amber-800 mb-1 flex justify-between">
+                <span>3. 改善勸勉</span>
+                <span id="seg3-len" class="text-[11px] text-amber-600">0字</span>
+              </div>
+              <p id="seg3-preview" class="text-slate-700 line-clamp-2"></p>
+            </div>
+            <div onclick="switchStep(4)" class="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200 cursor-pointer hover:bg-purple-50 transition">
+              <div class="font-bold text-purple-800 mb-1 flex justify-between">
+                <span>4. 期許結語</span>
+                <span id="seg4-len" class="text-[11px] text-purple-600">0字</span>
+              </div>
+              <p id="seg4-preview" class="text-slate-700 line-clamp-2"></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sticky Live Preview, Character Counter & Smart Condenser (5 cols) -->
+      <div class="lg:col-span-5 lg:sticky lg:top-20 space-y-4">
+
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+          <!-- Top Status Bar -->
+          <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" id="status-dot"></span>
+              <h2 class="font-bold text-sm tracking-wide">期末評語即時預覽及編輯器</h2>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-xs text-slate-400">連標點總字數：</span>
+              <span id="char-count-num" class="text-xl font-black text-emerald-400">0</span>
+              <span class="text-xs text-slate-400">/ 100字</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-200 h-2">
+            <div id="char-progress-bar" class="bg-emerald-500 h-2 transition-all duration-200" style="width: 0%"></div>
+          </div>
+
+          <div class="p-5 space-y-4">
+
+            <!-- Detected QPS Positive Character Tags -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-500">已包含伊正品格：</span>
+              <div id="detected-characters-container" class="flex flex-wrap gap-1">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Editable Textarea -->
+            <div class="relative">
+              <textarea id="final-comment-textarea" rows="5" oninput="handleManualTextareaEdit()"
+                class="w-full p-4 rounded-xl border-2 border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 outline-none serif-text text-base md:text-lg leading-relaxed text-slate-800 bg-amber-50/30 resize-none"
+                placeholder="請從左側點選例句配搭，或直接在此輸入評語..."></textarea>
+            </div>
+
+            <!-- Validation & Smart Condense Alert Box -->
+            <div id="validation-banner" class="rounded-xl p-3 text-xs flex items-center justify-between gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800">
+              <div class="flex items-center space-x-2">
+                <span id="validation-icon" class="text-base">✅</span>
+                <span id="validation-msg" class="font-medium">符合學校要求：已包含伊正品格，且連標點不超過100字。</span>
+              </div>
+            </div>
+
+            <!-- Smart Condenser & Polish Toolbar -->
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-600">🛠️ 字數微調與雅言潤飾工具</span>
+                <span class="text-[11px] text-slate-400">支援全庫句子智能濃縮</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="smartCondenseText()" class="py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm flex items-center justify-center space-x-1 transition">
+                  <span>✂️ 一鍵智能精簡字數</span>
+                </button>
+                <button onclick="reAssembleFromSteps()" class="py-2 px-3 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-medium text-xs flex items-center justify-center space-x-1 transition">
+                  <span>🔄 還原步驟配搭原句</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Primary Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <button onclick="copyFinalComment()" id="copy-btn" class="py-2.5 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm shadow flex items-center justify-center space-x-1.5 transition">
+                <span>📋 複製評語</span>
+              </button>
+              <button onclick="saveToClassList()" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow flex items-center justify-center space-x-1.5 transition">
+                <span>💾 存入班級名單</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Quick Reference Card: 9 Service Leaders + 5 Class Duties Summary -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-xs font-bold text-slate-700">📋 班務幹事 5 大職務快捷套用（各4句）</h3>
+              <span class="text-[11px] text-indigo-700 font-medium">點擊即切換至該班務</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="quickInsertClassRole('班長')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 transition">班長 (4句)</button>
+              <button onclick="quickInsertClassRole('各科科長')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 transition">各科科長 (中/英/數/人/科/常)</button>
+              <button onclick="quickInsertClassRole('午膳長')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 transition">午膳長 (4句)</button>
+              <button onclick="quickInsertClassRole('IT長')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 transition">IT長 (4句)</button>
+              <button onclick="quickInsertClassRole('康樂大使')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 transition">康樂大使 (4句)</button>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-2.5">
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 class="text-xs font-bold text-slate-700">🎖️ 校內 9 大服務生崗位快捷套用（各4句）</h3>
+              <span class="text-[11px] text-teal-700 font-medium">點擊即切換至該服務生</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="quickInsertServiceRole('領袖生')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">領袖生</button>
+              <button onclick="quickInsertServiceRole('中文大使')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">中文大使</button>
+              <button onclick="quickInsertServiceRole('英文大使')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">英文大使</button>
+              <button onclick="quickInsertServiceRole('數學大使')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">數學大使</button>
+              <button onclick="quickInsertServiceRole('小老師')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">小老師</button>
+              <button onclick="quickInsertServiceRole('體育領袖')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">體育領袖</button>
+              <button onclick="quickInsertServiceRole('遊戲大使')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">遊戲大使</button>
+              <button onclick="quickInsertServiceRole('IT小先鋒')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">IT小先鋒</button>
+              <button onclick="quickInsertServiceRole('圖書館管理員')" class="px-2 py-1 rounded-lg text-xs font-bold bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 transition">圖書館管理員</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: 18 STUDENT ARCHETYPES CONVERTER & 2627 SAMPLES -->
+    <div id="view-converter" class="hidden space-y-6">
+
+      <!-- Section A: Old DB to QPS Elegant Style Converter -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full">《班別_評語資料庫 (1)》深度轉化</span>
+            <h2 class="text-lg font-bold text-slate-800 mt-1">🔄 18種常見學生典型畫像：傳統白話評語 ➔ 伊正品格雅言轉換庫</h2>
+            <p class="text-xs text-slate-500">將舊資料庫的口語描述，轉化為符合《2627_班評》文風、包含伊正品格且 ≤100字 的期末評語：</p>
+          </div>
+          <input type="text" id="archetype-search" oninput="renderArchetypeCards()" placeholder="🔍 搜尋學生特徵 (如：好動、文靜、粗心、脾氣)..."
+            class="px-3 py-2 rounded-xl border border-slate-300 text-xs w-64 outline-none focus:border-teal-600">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="converter-cards-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Section B: 2627_班評 Authentic Samples -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">📖 《2627_班評.docx》24位學生真實評語範例庫（共48則）</h2>
+            <p class="text-xs text-slate-500">點擊任一範例可直接載入工作台，並支援一鍵精簡至100字以內：</p>
+          </div>
+          <input type="text" id="sample-search-input" oninput="render2627Samples()" placeholder="🔍 搜尋姓名、品格或關鍵字..."
+            class="px-3 py-2 rounded-xl border border-slate-300 text-xs w-64 outline-none focus:border-teal-600">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[600px] overflow-y-auto custom-scroll pr-1" id="samples-2627-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 3: SAVED CLASS LIST -->
+    <div id="view-saved" class="hidden space-y-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">📋 已儲存之班級期末評語名單</h2>
+            <p class="text-xs text-slate-500">所有評語均已標註「伊正品格」及「連標點字數」，可一鍵複製全班評語或匯出 CSV 檔案。</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="copyAllSavedComments()" class="px-3.5 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition">
+              📑 複製全班評語
+            </button>
+            <button onclick="exportSavedToCSV()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+              📥 匯出 CSV (Excel)
+            </button>
+            <button onclick="clearSavedList()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium transition">
+              🗑️ 清空
+            </button>
+          </div>
+        </div>
+
+        <div id="saved-list-container" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Quick Archetype Modal -->
+  <div id="quick-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 bg-teal-900 text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-base">⚡ 18種常見學生典型畫像・一鍵快速配搭</h3>
+          <p class="text-xs text-teal-200">根據《班別_評語資料庫 (1)》歸納，點擊即可自動套用並代入目前學生姓名</p>
+        </div>
+        <button onclick="closeQuickArchetypeModal()" class="text-teal-200 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="p-4 overflow-y-auto custom-scroll grid grid-cols-1 sm:grid-cols-2 gap-3" id="modal-archetype-list">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold flex items-center space-x-2 opacity-0 pointer-events-none transition-opacity duration-200 z-50">
+    <span id="toast-icon">✅</span>
+    <span id="toast-text">已複製到剪貼簿</span>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. 18 POSITIVE CHARACTERS OF QPS (伊利沙伯中學舊生會小學 18個伊正品格)
+    // =========================================================================
+    const QPS_CHARACTERS = [
+      // 正向情緒
+      {
+        id: 'gratitude',
+        name: '感恩',
+        category: '正向情緒',
+        color: 'bg-rose-500',
+        lightBg: 'bg-rose-50',
+        border: 'border-rose-300',
+        textColor: 'text-rose-800',
+        definition: '常向人表達感謝和珍惜，對他人的幫助表達認可和感激。',
+        keywords: ['感恩', '感謝', '珍惜', '謝意'],
+        examples: [
+          '{name}為人寬容並懂得感恩，除了珍惜他人的付出外，更願意報以行動表達謝意，非常可貴。',
+          '{name}品性純良且懂得感恩，常銘記師長與同儕的扶持，並以行動回饋班群，讓人感到温暖。',
+          '{name}常懷感恩之心，懂得珍惜父母與師長的悉心栽培，待人謙恭有禮，值得欣賞。',
+          '{name}待人真摯且懂得感恩，對同學的幫助常表謝意，不斤斤計較，在班中深受同儕愛戴。',
+          '{name}心懷感恩，臉上常帶微笑，樂於珍惜身邊點滴並與同儕分享歡樂，是人見人愛的孩子。',
+          '{name}品性溫婉且懂得感恩，常向給予指導的師長及協助自己的同學表達謝意，實屬難得。',
+          '{name}具感恩與惜福之心，不但愛惜公物，更常以真誠行動答謝他人的付出，品格可嘉。'
+        ]
+      },
+      {
+        id: 'optimism',
+        name: '樂觀',
+        category: '正向情緒',
+        color: 'bg-rose-500',
+        lightBg: 'bg-rose-50',
+        border: 'border-rose-300',
+        textColor: 'text-rose-800',
+        definition: '面對困難時，仍對未來抱有積極的期望和信念。',
+        keywords: ['樂觀', '正面心態', '豁達', '樂天'],
+        examples: [
+          '{name}性格樂觀，不拘泥於小挫折，能欣賞個人進步並懂得自勉，值得欣賞。',
+          '{name}為人樂觀，善於鼓勵及排解同儕的憂慮，且能正面及積極地接觸新事物，實屬難得。',
+          '{name}性格樂觀，豁達包容，總是帶著甜甜的笑容，與同儕相處融洽，值得欣賞。',
+          '{name}性格樂觀且能以正面心態看待自身成長，縱遇學業挑戰亦不氣餒，值得嘉許。',
+          '{name}為人樂觀開朗，是班中的樂天派，喜歡與同學分享歡樂，深受同儕歡迎。',
+          '{name}性格開朗且為人樂觀，不拘小節，能以豁達正面的態度面對學習上的考驗，值得欣賞。',
+          '{name}常展樂觀笑顏，面對困難時仍抱持積極信念，更能為班群注入正能量，非常可貴。'
+        ]
+      },
+      {
+        id: 'benevolence',
+        name: '仁愛',
+        category: '正向情緒',
+        color: 'bg-rose-500',
+        lightBg: 'bg-rose-50',
+        border: 'border-rose-300',
+        textColor: 'text-rose-800',
+        definition: '對他人無私地關心、幫助及愛護，為人著想和包容。',
+        keywords: ['仁愛', '關愛', '愛心', '愛護'],
+        examples: [
+          '{name}為人真誠且擁有仁愛之心，善於陪伴與安慰同儕，非常可貴。',
+          '{name}個性文靜且擁有仁愛之心，雖不善言辭，但能常伴同儕左右並給予支持，值得欣賞。',
+          '{name}為人真誠，心懷仁愛，當同儕在課堂遇到疑難時總樂於教導與扶持，品格可貴。',
+          '{name}富仁愛之心，待人溫文有禮，常無私地關心及幫助有需要的同學，深受大家喜愛。',
+          '{name}具仁愛與寬容之心，對朋友極為友善，更能包容及原諒曾作弄自己的人，美德可嘉。',
+          '{name}是個懂事且富仁愛之心的孩子，尊敬師長，友愛同儕，常主動為別人著想，值得讚賞。',
+          '{name}心懷仁愛，態度和藹溫柔，樂於幫助不同性格及能力的同學，是個出眾的好學生。'
+        ]
+      },
+
+      // 自重節制
+      {
+        id: 'humility',
+        name: '謙遜',
+        category: '自重節制',
+        color: 'bg-amber-500',
+        lightBg: 'bg-amber-50',
+        border: 'border-amber-300',
+        textColor: 'text-amber-900',
+        definition: '不誇耀自己的成就，承認自己的不足，保持謙虛。',
+        keywords: ['謙遜', '謙虛', '虛心', '從不自誇', '不自滿'],
+        examples: [
+          '{name}為人謙遜且自律，能以平常心面對他人的讚賞，善於安排學習的時間，值得欣賞。',
+          '{name}品性謙遜，能虛心接受師長與家人的意見，面對不足亦能坦然求進，實屬難得。',
+          '{name}天資聰穎卻為人謙遜，虛心向學，從不自誇，對師長及同學謙恭有禮，值得嘉許。',
+          '{name}待人謙遜有禮，樂於耐心地向同學請教課業疑難，願意接受指導求進步，非常可貴。',
+          '{name}處事謙遜沉實，縱使在考試中表現出色亦絕不自滿，仍能虛心納諫，值得讚賞。',
+          '{name}品性謙遜溫和，能遵守校規並虛心接受別人的意見，求學態度誠懇，值得欣賞。',
+          '{name}具謙遜美德，明白事理，樂於傾聽及接納不同同學的見解，與人相處融洽。'
+        ]
+      },
+      {
+        id: 'responsibility',
+        name: '承擔',
+        category: '自重節制',
+        color: 'bg-amber-500',
+        lightBg: 'bg-amber-50',
+        border: 'border-amber-300',
+        textColor: 'text-amber-900',
+        definition: '敢於承擔重任，勇於擔當後果，不諉過不推卸。',
+        keywords: ['承擔', '盡責', '負責', '責任感', '責任心'],
+        examples: [
+          '{name}樂於服務且富有承擔精神，常主動協助處理班務，並仔細匯報工作進度，值得欣賞。',
+          '{name}樂於承擔，處事獨立且具條理，面對重任從不推卸，值得師長與同儕信賴。',
+          '{name}樂於承擔且兼具勇氣，除了懂得自省，坦然面對過失並勇於致歉，實屬難得。',
+          '{name}具承擔精神，責任心重，對老師交託的任務均能一絲不苟地依時完成，值得讚賞。',
+          '{name}熱心服務且富承擔感，辦事認真盡責，是老師得力的小助手，深受同儕信賴。',
+          '{name}處事有條理且具承擔精神，能獨立完成困難的工作，在班中展現成熟風範，值得嘉許。',
+          '{name}勇於承擔班中職務，工作幹勁十足，面對錯失亦不推卸責任，品格難能可貴。'
+        ]
+      },
+      {
+        id: 'self_discipline',
+        name: '自律',
+        category: '自重節制',
+        color: 'bg-amber-500',
+        lightBg: 'bg-amber-50',
+        border: 'border-amber-300',
+        textColor: 'text-amber-900',
+        definition: '監管好自己的行為和感覺，控制好自己的欲望和情緒。',
+        keywords: ['自律', '克己', '守規', '遵守紀律', '自制'],
+        examples: [
+          '{name}克己自律，處事審慎，能妥善管理個人行為與學習進度，值得讚賞。',
+          '{name}為人自律且勤奮，能同時兼顧學業與諸多課外活動，達至均衡的發展，實屬難得。',
+          '{name}懂得自律，上課專心致志，不受其他同學影響，且能主動學習，不依賴師長督促。',
+          '{name}自覺遵守校規且具自律精神，課業乾淨整潔，能按步驟有條理地完成任務，值得欣賞。',
+          '{name}為人自律守規，在情緒控制與自我管理方面均有明顯進步，表現日趨成熟，值得嘉許。',
+          '{name}具良好的自律能力，能謹守師長要求，專注投入課堂活動，是個模範好學生。',
+          '{name}文靜向學且具自律性，能妥善分配作息與讀書時間，以身作則遵守紀律，值得讚賞。'
+        ]
+      },
+
+      // 守法正義
+      {
+        id: 'respect',
+        name: '尊重',
+        category: '守法正義',
+        color: 'bg-purple-600',
+        lightBg: 'bg-purple-50',
+        border: 'border-purple-300',
+        textColor: 'text-purple-900',
+        definition: '重視他人，以禮相待，考慮他人的需求、感受與權利。',
+        keywords: ['尊重', '以禮相待', '有禮', '尊敬師長'],
+        examples: [
+          '{name}品性純良且懂得尊重，雖不善言辭，但能不偏頗地聆聽同儕的意見及給予肯定，值得欣賞。',
+          '{name}品性純良，懂得尊重他人，能客觀聆聽同儕見解並給予真誠肯定，值得欣賞。',
+          '{name}待人溫文有禮，懂得尊重師長與同儕，常能顧及他人感受，是個討人喜愛的學生。',
+          '{name}具尊重他人的美德，能靜心傾聽不同類型同學的意見，接納多元觀點，值得嘉許。',
+          '{name}為人乖巧有禮，遵守課室規則並尊重師長，與同學相處融洽，表現值得讚賞。',
+          '{name}談吐溫文且懂得尊重別人，在討論中能禮貌地回應同儕見解，展現良好修養。',
+          '{name}重禮守規，常以尊重和包容的態度對待身邊每位同學，在班中建立了良好的人際關係。'
+        ]
+      },
+      {
+        id: 'fairness',
+        name: '公平',
+        category: '守法正義',
+        color: 'bg-purple-600',
+        lightBg: 'bg-purple-50',
+        border: 'border-purple-300',
+        textColor: 'text-purple-900',
+        definition: '重視平等，能公正及客觀地處事及作出判斷。',
+        keywords: ['公平', '公正', '不偏倚', '不偏袒', '正義感'],
+        examples: [
+          '{name}為人率直且著重公平，能客觀地表達個人意見，不因同儕親疏而有所偏倚，實屬難得。',
+          '{name}品性率直，重視公平，處事公允客觀，不因同儕親疏而有所偏袒，實屬難得。',
+          '{name}為人樂觀且著重公平，在協助維持秩序時大公無私，深得同學信服，值得信賴。',
+          '{name}富有正義感且重視公平，看見不平之事能秉持公正立場挺身而出，品格值得欣賞。',
+          '{name}處事講求公平，具獨立判斷力，在分組活動中能公正地協調分工，表現成熟。',
+          '{name}為人正直且重公平，能客觀分析是非，不會隨便附和他人，實屬難得。',
+          '{name}秉持公平與客觀的態度待人接物，能一視同仁地與不同同學合作，值得嘉許。'
+        ]
+      },
+      {
+        id: 'integrity',
+        name: '誠信',
+        category: '守法正義',
+        color: 'bg-purple-600',
+        lightBg: 'bg-purple-50',
+        border: 'border-purple-300',
+        textColor: 'text-purple-900',
+        definition: '信守諾言，言行一致，不弄虛作假，待人真誠。',
+        keywords: ['誠信', '真誠', '誠實', '言行一致', '樸實正直'],
+        examples: [
+          '{name}品性純良且待人真誠，言行一致，與同儕關係友好，值得欣賞。',
+          '{name}為人誠實可靠，重視誠信，對答應師長與同儕的事情必盡力兌現，深得大家信賴。',
+          '{name}為人樸實正直，誠實謙虛，面對錯失從不掩飾，能坦誠改正，品格可貴。',
+          '{name}待人熱誠真摯，恪守誠信，能一絲不苟地獨立完成課業，絕不弄虛作假，值得讚賞。',
+          '{name}具誠信美德，做人率直真誠，能以坦率態度與師長分享生活經驗，讓人倍感安心。',
+          '{name}是個誠實沉實的孩子，言出必行，在班務及學業上均展現出高度的誠信，值得嘉許。',
+          '{name}心懷誠信，待人以誠，在同學間建立了深厚的互信與友誼，表現值得欣賞。'
+        ]
+      },
+
+      // 人際連繫
+      {
+        id: 'unity',
+        name: '團結',
+        category: '人際連繫',
+        color: 'bg-emerald-600',
+        lightBg: 'bg-emerald-50',
+        border: 'border-emerald-300',
+        textColor: 'text-emerald-900',
+        definition: '在共同目標下，互相合作努力，信任團隊及建立友誼。',
+        keywords: ['團結', '合作', '團隊', '合群', '群體'],
+        examples: [
+          '{name}性格堅毅且重視團結，在分組工作中屢見領袖才能，能帶領同儕合作完成目標，值得讚賞。',
+          '{name}重視團結精神，在小組討論及資料搜集中，能帶領組員分工合作，表現出色。',
+          '{name}熱愛集體且具團結精神，樂於在課堂活動中與同學攜手解難，建立深厚友誼，值得欣賞。',
+          '{name}具團隊合作意識，在分組活動中投入積極，既能抒發己見，亦能配合組員，發揮團結力量。',
+          '{name}為人合群，重視班級團結，常主動協助組員解決困難，攜手成長，發揮正能量。',
+          '{name}善於與人合作，具團結精神，在群體活動中能互相忍讓、互補長短，值得嘉許。',
+          '{name}富團結意識與領導潛能，能凝聚同儕力量共同完成學習任務，深得組員信任。'
+        ]
+      },
+      {
+        id: 'filial_piety',
+        name: '孝親',
+        category: '人際連繫',
+        color: 'bg-emerald-600',
+        lightBg: 'bg-emerald-50',
+        border: 'border-emerald-300',
+        textColor: 'text-emerald-900',
+        definition: '尊敬父母和長輩，感恩他們的愛護和照顧，作出回報。',
+        keywords: ['孝親', '孝順', '尊敬父母', '家人與長輩', '家人與師長'],
+        examples: [
+          '{name}深明孝親之道，能虛心接受家人與師長的意見，亦懂反思挫折並付諸具體改善，值得欣賞。',
+          '{name}懂得孝親之道，樂於尊重和接受家人與長輩的意見，並以認真向學回報父母，值得欣賞。',
+          '{name}心懷孝親之情，感恩父母的悉心照料，常與家人分享校園點滴，懂事乖巧，實屬難得。',
+          '{name}具孝親美德，在家敬愛父母，在校尊敬師長，能將長輩的教誨銘記於心，值得嘉許。',
+          '{name}深明孝親與尊師之理，體恤家人的辛勞，在學業上自覺努力，不讓父母操心，非常可貴。',
+          '{name}性情溫厚，重孝親之道，能聽從父母與師長的引導，努力改善自身不足，值得讚賞。',
+          '{name}懂事且具孝親之心，珍惜家庭溫暖，在父母的支持與鼓勵下積極向上，表現可嘉。'
+        ]
+      },
+      {
+        id: 'empathy',
+        name: '同理心',
+        category: '人際連繫',
+        color: 'bg-emerald-600',
+        lightBg: 'bg-emerald-50',
+        border: 'border-emerald-300',
+        textColor: 'text-emerald-900',
+        definition: '能夠站在對方立場設身處地思考，理解他人的感受。',
+        keywords: ['同理心', '設身處地', '體諒', '觀人於微', '洞悉'],
+        examples: [
+          '{name}品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。',
+          '{name}品性純良且兼具同理心，能洞悉同儕的負面情緒，善於表達關懷及鼓勵，值得欣賞。',
+          '{name}個性善良細心，具同理心，能觀人於微，設身處地理解同學的感受，非常可貴。',
+          '{name}富同理心，善解人意，常能體諒別人的難處並給予溫暖的安慰，深受同儕歡迎。',
+          '{name}具同理心與包容力，在與同學相處時懂得換位思考，互相忍讓，人際關係良好。',
+          '{name}待人溫柔且富同理心，能敏銳察覺身邊同學的需要並主動伸出援手，值得嘉許。',
+          '{name}兼具同理心與仁愛精神，懂得尊重及體恤不同能力同學的步伐，品格實屬難得。'
+        ]
+      },
+
+      // 面對挑戰
+      {
+        id: 'courage',
+        name: '勇氣',
+        category: '面對挑戰',
+        color: 'bg-orange-500',
+        lightBg: 'bg-orange-50',
+        border: 'border-orange-300',
+        textColor: 'text-orange-900',
+        definition: '面對困難、恐懼及挑戰時，表現出堅定和果敢的精神。',
+        keywords: ['勇氣', '勇於', '不畏', '敢於', '突破自我'],
+        examples: [
+          '{name}品性純良且具勇氣，除了懂得自省並付諸具體改善外，亦善於表達關懷，值得欣賞。',
+          '{name}充滿勇氣，課堂上敢想、敢說、敢問、敢辯，勇於在大眾面前清楚表達主張，值得讚賞。',
+          '{name}具接受挑戰的勇氣，能突破自我，不畏困難與挫折，勇於嘗試擔任不同職務，實屬難得。',
+          '{name}為人具勇氣且有主見，不會隨便附和別人，遇有疑難亦敢於主動發問求正，值得嘉許。',
+          '{name}展現出果敢的勇氣，能戰勝內心害羞，開始在課堂上主動舉手回答問題，進步令人欣喜。',
+          '{name}富創新與探索的勇氣，面對陌生課題仍敢於大膽嘗試、從錯中求正，精神可嘉。',
+          '{name}具面對過失的勇氣，懂得自我檢討並積極修正，同時勇於挑戰高難度任務，值得欣賞。'
+        ]
+      },
+      {
+        id: 'perseverance',
+        name: '堅毅',
+        category: '面對挑戰',
+        color: 'bg-orange-500',
+        lightBg: 'bg-orange-50',
+        border: 'border-orange-300',
+        textColor: 'text-orange-900',
+        definition: '堅定的意志及不屈不撓的精神，保持毅力及決心。',
+        keywords: ['堅毅', '毅力', '不屈不撓', '孜孜不倦', '持之以恆', '恆心'],
+        examples: [
+          '{name}為人自律且堅毅，喜見{pronoun}能正視個人的學習困難，敢於從錯誤中求正，讓人鼓舞。',
+          '{name}性格堅毅，面對訓練或學業挑戰均能孜孜不倦地練習，展現不屈不撓的精神，值得讚賞。',
+          '{name}具堅毅精神，是個不服輸的孩子，對於感興趣或具挑戰的目標會持之以恆地完成，實屬難得。',
+          '{name}處事具恆心與堅毅意志，在工作中幹勁十足，從不洩氣，努力克服學習瓶頸，值得嘉許。',
+          '{name}秉持堅毅不拔的態度，縱使個別科目遇上阻滯亦不言棄，堅持一步一腳印地鞏固基礎。',
+          '{name}性格沉實堅毅，懂得如何面對困難，憑藉不懈的毅力令學業表現穩步上揚，令人欣喜。',
+          '{name}具堅毅的求學決心，不斷提升自我要求，力臻進步，展現出頑強的學習韌性，值得欣賞。'
+        ]
+      },
+      {
+        id: 'passion',
+        name: '熱情',
+        category: '面對挑戰',
+        color: 'bg-orange-500',
+        lightBg: 'bg-orange-50',
+        border: 'border-orange-300',
+        textColor: 'text-orange-900',
+        definition: '充滿力量地面對生命，對事物及活動展現渴望及興趣。',
+        keywords: ['熱情', '熱誠', '積極投入', '充滿活力', '熱心'],
+        examples: [
+          '{name}對校園生活充滿熱情，積極參與校內外活動，待人熱誠，展現出充沛的活力，值得讚賞。',
+          '{name}服務熱誠且富學習熱情，課堂表現非常投入，常以高昂的幹勁帶動學習氣氛，實屬難得。',
+          '{name}性格開朗，對新事物抱持高度熱情，樂於與師長及同儕分享生活經驗，是個充滿朝氣的學生。',
+          '{name}具求知與服務的熱情，無論在課堂討論或班務工作上均全情投入，表現積極進取，值得欣賞。',
+          '{name}充滿活力與熱情，懂得在不同環境中靈活應變，積極幫助師長及同學，深受大家喜愛。',
+          '{name}對閱讀與探索知識懷有濃厚熱情，常在課堂上踴躍發表獨特見解，求學精神可嘉。',
+          '{name}以滿滿的熱情投入小組活動及體藝訓練，展現出積極向上的生命力，值得嘉許。'
+        ]
+      },
+
+      // 熱愛學習
+      {
+        id: 'curiosity',
+        name: '好奇心',
+        category: '熱愛學習',
+        color: 'bg-blue-600',
+        lightBg: 'bg-blue-50',
+        border: 'border-blue-300',
+        textColor: 'text-blue-900',
+        definition: '對新鮮事物及話題感興趣，並會進行探索及加以發掘。',
+        keywords: ['好奇心', '求知慾', '探究', '探索', '創意'],
+        examples: [
+          '{name}兼具創意力與好奇心，觀其視藝作品與課堂問答，常有別出心裁的想法，讓人眼前一亮。',
+          '{name}好奇心強，樂於探索四周的新事物，求知慾旺盛，經常在課堂主動作出提問，值得欣賞。',
+          '{name}富好奇心與探究精神，對身邊事物及時事十分關心，喜與師長討論以擴闊眼界，實屬難得。',
+          '{name}腦筋靈活且具強烈好奇心，對於同一個問題能提出許多具創意的點子，表現值得讚賞。',
+          '{name}求學興趣濃厚，富好奇心，喜愛透過閱讀課外書發掘新知識，思維敏銳，值得嘉許。',
+          '{name}具好奇心與觀察力，常能從日常身邊事物中探索並吸收新知，意念往往出人意表。',
+          '{name}愛好思考與發問，對感興趣的主題充滿好奇心，並能持續深入探究，學習態度可貴。'
+        ]
+      },
+      {
+        id: 'diligence',
+        name: '勤奮',
+        category: '熱愛學習',
+        color: 'bg-blue-600',
+        lightBg: 'bg-blue-50',
+        border: 'border-blue-300',
+        textColor: 'text-blue-900',
+        definition: '努力工作和學習，持續努力和不懈的認真，提升自己。',
+        keywords: ['勤奮', '好學不倦', '刻苦用功', '敏而好學', '勤學'],
+        examples: [
+          '{name}好學不倦，勤奮向上，對自身期許頗高，能有效分配時間兼顧學術與課外活動，實屬難得。',
+          '{name}學習認真勤奮，刻苦用功，課業總是獨立且整齊地完成，求學態度一絲不苟，值得讚賞。',
+          '{name}敏而好學，為人勤奮沉實，課堂上留心聽講，課後亦主動規劃額外練習以提升自己，值得欣賞。',
+          '{name}具勤奮向學的精神，懂得善用餘暇廣泛閱讀有益圖書，努力不懈地充實知識根基，表現可嘉。',
+          '{name}求學態度勤奮認真，遇有錯處能及時訂正，從不敷衍了事，各科成績均見付出與努力。',
+          '{name}為人勤奮好學，不需師長督促亦能自覺溫習，持續提升自我要求，是個品學兼優的好學生。',
+          '{name}勤奮篤學，上課專注投入，課業有條不紊，憑藉不懈努力在學業上取得穩步發展，值得嘉許。'
+        ]
+      },
+      {
+        id: 'prudence',
+        name: '審慎',
+        category: '熱愛學習',
+        color: 'bg-blue-600',
+        lightBg: 'bg-blue-50',
+        border: 'border-blue-300',
+        textColor: 'text-blue-900',
+        definition: '做決定時謹慎小心，作出考量及分析，避免衝動行事。',
+        keywords: ['審慎', '謹慎', '細心', '覆檢', '深思熟慮'],
+        examples: [
+          '{name}具審慎的精神，應試專注亦培養了穩紮的覆檢策略，減少失誤，值得欣賞。',
+          '{name}處事小心審慎，觀察力敏銳，能用心思考及分析老師的講解，避免衝動行事，實屬難得。',
+          '{name}為人細心審慎，做事有條理，能按部就班地分析問題並作出合理判斷，值得嘉許。',
+          '{name}具審慎向學的態度，無論處理班務或完成課業均仔細認真，懂得反覆核對，值得讚賞。',
+          '{name}思考周密審慎，判斷力不俗，在面對難題時能先作冷靜分析與考量，表現成熟穩重。',
+          '{name}處事謹言慎行，態度審慎，在分組討論與日常學習中均展現出細緻有條理的能力，值得欣賞。',
+          '{name}具審慎求真的精神，對課業問題加倍小心求正，善於獨立思考及分析重點，非常可貴。'
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 2. STEP 2 DATA: 36 SERVICE LEADERS + 20 CLASS DUTIES + TALENTS & PROGRESS
+    // =========================================================================
+    const STEP2_CATEGORIES = [
+      {
+        id: 'service_leaders',
+        name: '🎖️ 校內服務生 (9大崗位・36句)',
+        items: [
+          // 領袖生 (1-4)
+          {
+            role: '領袖生',
+            mode: '選項 1・維持秩序與領導',
+            text: '{pronoun}擔任領袖生期間表現盡責，能妥善代表老師維持校園秩序，表現出色的領導才能。'
+          },
+          {
+            role: '領袖生',
+            mode: '選項 2・以身作則修己善群',
+            text: '作為領袖生，{pronoun}能以身作則，帶領同學盡伊小學生的責任，充分實踐「修己善群」的精神。'
+          },
+          {
+            role: '領袖生',
+            mode: '選項 3・態度認真得力助手',
+            text: '{pronoun}在執行領袖生職務時態度認真，積極協助老師維持秩序，是老師的得力助手。'
+          },
+          {
+            role: '領袖生',
+            mode: '選項 4・帶領守規正面影響',
+            text: '{pronoun}具備良好的服務意識，能有效帶領同學遵守校規，發揮「修己善群」的正面影響力。'
+          },
+
+          // 中文大使 (1-4)
+          {
+            role: '中文大使',
+            mode: '選項 1・推廣中文學習氣氛',
+            text: '{pronoun}熱心擔任中文大使，積極協助老師推行中文科學習活動，對推廣校園中文學習氣氛有顯著貢獻。'
+          },
+          {
+            role: '中文大使',
+            mode: '選項 2・循循善誘指導閱書',
+            text: '{pronoun}具備耐心與親和力，能循循善誘地教導同學閱讀中文故事書，有效提升同學的閱讀興趣。'
+          },
+          {
+            role: '中文大使',
+            mode: '選項 3・帶領iPad中文遊戲',
+            text: '{pronoun}在帶領同學利用iPad進行中文遊戲學習時表現投入，能生動地引導同學在遊戲中學習中文。'
+          },
+          {
+            role: '中文大使',
+            mode: '選項 4・助推活動悉心伴讀',
+            text: '作為中文大使，{pronoun}樂於助人，積極投入各項中文科學習活動的推行，並悉心指導同學閱讀，服務精神可嘉。'
+          },
+
+          // 英文大使 (1-4)
+          {
+            role: '英文大使',
+            mode: '選項 1・協助推行英文活動',
+            text: '{pronoun}積極投入英文大使的工作，主動協助老師推行英文科學習活動，展現對英語學習的熱忱。'
+          },
+          {
+            role: '英文大使',
+            mode: '選項 2・愛心伴讀建立自信',
+            text: '{pronoun}極具愛心，能友善地陪伴低年級同學閱讀英文故事書，幫助學弟妹建立對英語的自信。'
+          },
+          {
+            role: '英文大使',
+            mode: '選項 3・帶領英文遊戲氣氛',
+            text: '{pronoun}在帶領低年級同學進行英文遊戲時表現活潑，能有效帶動活動氣氛，讓同學在歡樂中學習。'
+          },
+          {
+            role: '英文大使',
+            mode: '選項 4・盡責伴讀推展活動',
+            text: '本學年擔任英文大使期間表現盡責，樂意付出時間陪伴學弟妹閱讀及遊戲，大力協助推展英文學習活動。'
+          },
+
+          // 數學大使 (1-4)
+          {
+            role: '數學大使',
+            mode: '選項 1・帶領數學遊戲活動',
+            text: '{pronoun}擔任數學大使表現出色，能主動帶領同學以遊戲形式進行活動，讓數學學習變得生動有趣。'
+          },
+          {
+            role: '數學大使',
+            mode: '選項 2・教用電子工具學習',
+            text: '{pronoun}具備良好的數理與解難能力，樂於教導同學利用電子工具進行有趣的學習，成效顯著。'
+          },
+          {
+            role: '數學大使',
+            mode: '選項 3・擴闊同儕數學視野',
+            text: '作為數學大使，{pronoun}熱心協助同學擴闊數學知識領域，激發了同儕對探究數學的興趣。'
+          },
+          {
+            role: '數學大使',
+            mode: '選項 4・善用工具與遊戲引導',
+            text: '{pronoun}能善用電子工具及遊戲活動引導同學學習數學，認真履行數學大使職責，表現值得讚賞。'
+          },
+
+          // 小老師 (1-4)
+          {
+            role: '小老師',
+            mode: '選項 1・耐性指導低年級課業',
+            text: '{pronoun}擔任小老師期間展現無比耐性，能悉心教導低年級同學完成課業，發揮守望相助的精神。'
+          },
+          {
+            role: '小老師',
+            mode: '選項 2・分享有趣知識好榜樣',
+            text: '{pronoun}熱衷於知識分享，樂於教導低年級同學學習有趣知識，是學弟妹心目中的好榜樣。'
+          },
+          {
+            role: '小老師',
+            mode: '選項 3・態度親切解決課業困難',
+            text: '作為小老師，{pronoun}指導學弟妹時態度親切溫和，能有效協助他們解決課業上的困難。'
+          },
+          {
+            role: '小老師',
+            mode: '選項 4・主動關懷進度與啟發',
+            text: '{pronoun}主動關懷低年級同學的學習進度，並提供適切的學業教導與知識啟發，盡責可靠。'
+          },
+
+          // 體育領袖 (1-4)
+          {
+            role: '體育領袖',
+            mode: '選項 1・主持小息運動場',
+            text: '{pronoun}擔任體育領袖充滿幹勁，能妥善主持小息運動場，帶動校園的運動風氣。'
+          },
+          {
+            role: '體育領袖',
+            mode: '選項 2・組織協調體適能活動',
+            text: '{pronoun}具備優秀的組織與協調能力，能有效協助同學進行各項體適能活動，表現出眾。'
+          },
+          {
+            role: '體育領袖',
+            mode: '選項 3・公平協調運動小遊戲',
+            text: '在協調小息運動場的小遊戲時，{pronoun}處事公平公正，確保同學能在安全的環境下享受運動樂趣。'
+          },
+          {
+            role: '體育領袖',
+            mode: '選項 4・推廣體育與體適能',
+            text: '作為體育領袖，{pronoun}熱心推廣體育活動，積極帶領同學參與體適能訓練及遊戲，充滿正能量。'
+          },
+
+          // 遊戲大使 (1-4)
+          {
+            role: '遊戲大使',
+            mode: '選項 1・小息午膳帶領遊戲',
+            text: '{pronoun}擔任遊戲大使表現活躍，能於小息及午膳時間熱心帶領同學進行各類遊戲活動。'
+          },
+          {
+            role: '遊戲大使',
+            mode: '選項 2・凝聚同學營造歡樂',
+            text: '{pronoun}性格開朗外向，在帶領遊戲活動時能迅速凝聚同學，為校園營造歡樂和諧的氣氛。'
+          },
+          {
+            role: '遊戲大使',
+            mode: '選項 3・付出時間帶領多元遊戲',
+            text: '{pronoun}犧牲個人小息及午膳時間，積極投入遊戲大使職務，為同學帶領多樣化的遊戲活動。'
+          },
+          {
+            role: '遊戲大使',
+            mode: '選項 4・鼓勵參與促進同儕互動',
+            text: '作為遊戲大使，{pronoun}具備良好的帶領技巧，能鼓勵不同性格的同學參與遊戲，促進同儕互動。'
+          },
+
+          // IT小先鋒 (1-4)
+          {
+            role: 'IT小先鋒',
+            mode: '選項 1・教導運用有趣學習軟件',
+            text: '{pronoun}具備豐富的資訊科技知識，擔任IT小先鋒期間，能有效教導同學運用有趣的學習軟件進行活動。'
+          },
+          {
+            role: 'IT小先鋒',
+            mode: '選項 2・推廣數碼學習分享技巧',
+            text: '{pronoun}熱心推廣數碼學習，樂於分享操作技巧，協助同學在學習軟件中發掘樂趣，表現優良。'
+          },
+          {
+            role: 'IT小先鋒',
+            mode: '選項 3・耐性清晰講解操作步驟',
+            text: '作為IT小先鋒，{pronoun}指導同學運用學習軟件時極具耐性，能清晰講解操作步驟，是老師的好幫手。'
+          },
+          {
+            role: 'IT小先鋒',
+            mode: '選項 4・善用軟件引導互動學習',
+            text: '{pronoun}積極參與資訊科技推廣服務，善用有趣的軟件引導同學進行互動學習，展現出色的資訊素養。'
+          },
+
+          // 圖書館管理員 (1-4)
+          {
+            role: '圖書館管理員',
+            mode: '選項 1・有條不紊協助管理館務',
+            text: '{pronoun}擔任圖書館管理員表現盡責，能有條不紊地協助老師管理學校圖書館，維持良好的閱讀環境。'
+          },
+          {
+            role: '圖書館管理員',
+            mode: '選項 2・協助借閱及推廣閱書',
+            text: '{pronoun}服務態度友善，能熱心幫助同學借閱圖書，並積極推廣各項閱書活動。'
+          },
+          {
+            role: '圖書館管理員',
+            mode: '選項 3・一絲不苟助推閱書活動',
+            text: '作為圖書館管理員，{pronoun}對圖書管理工作一絲不苟，積極協助閱書活動的進行，值得嘉許。'
+          },
+          {
+            role: '圖書館管理員',
+            mode: '選項 4・管理館務及帶領閱書',
+            text: '{pronoun}熱愛閱讀且樂於服務，在協助管理圖書館及帶領同學進行閱書活動上皆有出色表現。'
+          }
+        ]
+      },
+      {
+        id: 'class_roles',
+        name: '📋 班務及其他職務 (5大幹事・20句+)',
+        items: [
+          // 1. 班長 (1-4)
+          {
+            role: '班長',
+            mode: '選項 1・協助處理班務得力助手',
+            text: '{pronoun}本學年擔任班長，表現盡責，能妥善協助班主任處理班級事務，是老師的得力助手。'
+          },
+          {
+            role: '班長',
+            mode: '選項 2・統籌幹事發揮團隊精神',
+            text: '作為班長，{pronoun}具備良好的領導才能，能有效統籌班內各幹事的工作，帶動同學發揮團隊精神。'
+          },
+          {
+            role: '班長',
+            mode: '選項 3・主動維持秩序具自治力',
+            text: '{pronoun}處事成熟穩重，能在老師不在課室時主動維持整體秩序，表現出色的自治能力與責任心。'
+          },
+          {
+            role: '班長',
+            mode: '選項 4・以身作則深得師生愛戴',
+            text: '擔任班長期間，{pronoun}以身作則，盡心盡力為班級服務，深得老師及同學的信任與愛戴。'
+          },
+
+          // 2. 各科科長（中文、英文、數學、人文、科學、常識） (1-4)
+          {
+            role: '各科科長',
+            mode: '選項 1・點齊派發課業記錄名單',
+            text: '{pronoun}擔任{subject_rep}期間處事細心，能準確點齊及派發課業，並妥善記錄未交名單，大大減輕老師的行政負擔。'
+          },
+          {
+            role: '各科科長',
+            mode: '選項 2・課前領讀營造學習氣氛',
+            text: '作為{subject_rep}，{pronoun}主動於課前帶領同學朗讀，有效營造積極的學習氣氛，表現值得讚賞。'
+          },
+          {
+            role: '各科科長',
+            mode: '選項 3・富同理心協助同儕互助',
+            text: '{pronoun}富同理心，擔任{subject_rep}樂於發揮同儕互助精神，耐心協助該科成績較遜色的同學，服務精神可嘉。'
+          },
+          {
+            role: '各科科長',
+            mode: '選項 4・敏銳觀察匯報課業情況',
+            text: '{pronoun}任{subject_rep}做事具敏銳的觀察力，能細心留意並向老師匯報同學的課業表現異常情況，是老師的良好溝通橋樑。'
+          },
+
+          // 3. 午膳長 (1-4)
+          {
+            role: '午膳長',
+            mode: '選項 1・協助派飯維持洗手進食紀律',
+            text: '{pronoun}擔任午膳長表現盡責，能妥善協助派發飯盒，並有效維持排隊洗手及進食時的良好紀律。'
+          },
+          {
+            role: '午膳長',
+            mode: '選項 2・指導清理桌面確保衛生',
+            text: '{pronoun}熱心指導同學清理桌面及收拾垃圾，積極培養同儕的自理能力，確保課室環境衛生。'
+          },
+          {
+            role: '午膳長',
+            mode: '選項 3・提醒避免浪費珍惜食物',
+            text: '作為午膳長，{pronoun}能細心留意同學的進食情況，適時提醒同學避免浪費，具備良好的珍惜食物意識。'
+          },
+          {
+            role: '午膳長',
+            mode: '選項 4・管理午膳安全整潔有序',
+            text: '{pronoun}在午膳時段展現出色的管理能力，確保全班同學的午膳過程安全、整潔且有序，做事認真可靠。'
+          },
+
+          // 4. IT長 (1-4)
+          {
+            role: 'IT長',
+            mode: '選項 1・管理電子白板運作順暢',
+            text: '{pronoun}擔任IT長期間表現稱職，能妥善管理課室的電子白板，確保設備運作順暢，是老師的好幫手。'
+          },
+          {
+            role: 'IT長',
+            mode: '選項 2・下課檢查關閉設備具環保意識',
+            text: '{pronoun}做事細心具環保意識，能確實執行下課後檢查及關閉全數電子設備的職務，愛護公物。'
+          },
+          {
+            role: 'IT長',
+            mode: '選項 3・主動預開電子課本提升效率',
+            text: '作為IT長，{pronoun}能熟練且主動地預先開啟當天課堂需要的電子課本及教具，有效提升了課堂效率。'
+          },
+          {
+            role: 'IT長',
+            mode: '選項 4・確保資訊設備隨時備用',
+            text: '{pronoun}熱心服務班級，認真履行IT長職責，確保課堂資訊科技設備隨時處於備用狀態，值得嘉許。'
+          },
+
+          // 5. 康樂大使 (1-4)
+          {
+            role: '康樂大使',
+            mode: '選項 1・管理遊戲箱推動物歸原處',
+            text: '{pronoun}擔任康樂大使做事有條理，能妥善管理及收拾課室的遊戲箱，並推動同學養成物歸原處的良好習慣。'
+          },
+          {
+            role: '康樂大使',
+            mode: '選項 2・定期檢視桌遊缺漏損耗',
+            text: '{pronoun}具備強烈的責任心，會定期仔細檢視各項桌上遊戲的使用狀況，主動留意是否有缺漏或損耗。'
+          },
+          {
+            role: '康樂大使',
+            mode: '選項 3・維護共用資源享優質小息',
+            text: '作為康樂大使，{pronoun}默默為班級付出，確保共用的康樂資源狀態良好，讓同學能享受優質的小息時光。'
+          },
+          {
+            role: '康樂大使',
+            mode: '選項 4・維護康樂設施營造和諧氣氛',
+            text: '{pronoun}做事細心盡責，積極維護班內的康樂設施，為課室營造了和諧、歡樂的課餘氣氛，表現優良。'
+          },
+
+          // 其他班務與榮譽
+          {
+            role: '其他班務',
+            mode: '領袖生隊長・精明幹練',
+            text: '在擔任領袖生隊長一職上，有條不紊，精明幹練，值得信賴。'
+          },
+          {
+            role: '其他班務',
+            mode: '組長・帶領分組搜集資料',
+            text: '在擔任組長上認真盡責，每次分組資料搜集皆能帶領組員同心完成工作。'
+          },
+          {
+            role: '其他班務',
+            mode: '清潔糾察・維護整潔環境',
+            text: '擔任清潔糾察表現稱職，做事認真且具條理，竭力維護整潔的學習環境。'
+          },
+          {
+            role: '其他班務',
+            mode: '傑出好學生選舉・突破自我',
+            text: '喜見{pronoun}能突破自我，於傑出好學生選舉中盡展潛能，且學行俱佳。'
+          }
+        ]
+      },
+      {
+        id: 'arts_sports',
+        name: '🎨 體藝與多元天賦',
+        items: [
+          '{pronoun}在視藝及繪畫方面甚具天份，靈感及題材與別不同，作品常令人眼前一亮。',
+          '{pronoun}在舞蹈及芭蕾舞方面展現天賦，表現亮眼，值得多加栽培。',
+          '{pronoun}運動天賦出眾，身手敏捷，曾代表學校參與比賽，體藝表現不俗。',
+          '{pronoun}在音樂及彈琴方面有良好表現，兼具藝術潛能，達至均衡發展。',
+          '{pronoun}在故事演說及朗誦方面甚具潛質，說話能力強，能清楚流暢地敘述事情。',
+          '{pronoun}能同時兼顧學業與諸多課外活動，體藝與學術俱佳，實屬難得。'
+        ]
+      },
+      {
+        id: 'academic_strengths',
+        name: '📚 語文數理與書寫優勢',
+        items: [
+          '{pronoun}理解力強且熱愛閱讀，能從課外書中汲取靈感，語文根基及表達能力俱佳。',
+          '{pronoun}頭腦靈活，心算速度敏捷，在數學科解難方面展現出良好的邏輯思維。',
+          '{pronoun}英文能力卓越，語調自然，在課堂問答中表現積極自信。',
+          '{pronoun}書寫端正，中英文字體秀麗大方，課業總是乾淨整潔，屢獲師長讚賞。',
+          '喜見{pronoun}日常書寫漸趨端正認真，課業亦見整齊與條理，並會主動完成額外練習。',
+          '{pronoun}自學及觀察能力甚強，反應敏銳，能就課外議題提出獨特見解。'
+        ]
+      },
+      {
+        id: 'recent_progress',
+        name: '📈 近期自信、情緒與社交進步',
+        items: [
+          '喜見{pronoun}在同儕與家人的扶持下，學習自信及默書成績穩步提升。',
+          '喜見{pronoun}近來在情緒控制及與同學相處方面均有明顯改善，人際關係日漸融洽。',
+          '喜見{pronoun}近來漸趨開朗，能鼓起勇氣主動舉手回答問題，學習自信大增。',
+          '喜見{pronoun}的課堂專注度與自我管理能力漸見提升，個人紀律明顯改善。',
+          '喜見{pronoun}能逐漸享受與同儕的相處及交流，樂於跟師長分享生活經驗。',
+          '喜見{pronoun}能正視個人的學習困難，閱讀和書寫中文的能力穩步向上，讓人鼓舞。'
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 3. STEP 3 DATA: CONSTRUCTIVE ADVICE (6 CATEGORIES × 14 SENTENCES = 84 ITEMS)
+    // =========================================================================
+    const STEP3_CATEGORIES = [
+      {
+        id: 'focus_rules',
+        name: '🎯 專注與課堂自制 (14句)',
+        items: [
+          '若能在課堂上保持專注，免於課間閑談及擺弄文具，定能提高學習效益，',
+          '惟上課時略嫌好動多言，易受周遭環境影響，若能加強自我克制，留心聽講，',
+          '盼{pronoun}能改善課堂偶爾心不在焉及小動作的情況，把專注力集中在學業上，',
+          '若能收斂在課堂上過於活躍的表現，遵守課室規則，專心投入學習活動，',
+          '惟須持之以恆地實踐積極的學習態度，深化自律，達至謹言慎行，',
+          '若能減少課間與同儕傾談，全神貫注地聆聽師長講解，掌握課堂重點，',
+          '盼{pronoun}能摒除課間擺弄文具或神遊物外的情況，時刻保持高度的課堂專注力，',
+          '惟自制能力尚待提升，若能在上課時約束個人言行，避免因分心而遺漏知識要點，',
+          '若能進一步提升課堂自律性，不受旁人影響而分神，更專注地完成堂課，',
+          '惟偶爾在課堂上玩得樂極忘形，若能學會在轉堂後迅速收心，安靜留心聽課，',
+          '盼{pronoun}能改善上課走神及隨便插話的習慣，培養耐心聆聽及舉手發言的課堂常規，',
+          '若能在非感興趣的科目上同樣保持專注與耐性，持之以恆地投入每一節課堂，',
+          '惟課堂表現偶見浮躁，若能沉下心來細聽師長指導，按指示專心參與課堂活動，',
+          '若能將充沛的活力轉化為課堂求知的專注力，嚴格遵守班規，免於鬆懈怠惰，'
+        ]
+      },
+      {
+        id: 'homework_careful',
+        name: '📝 審慎、字體與整理習慣 (14句)',
+        items: [
+          '若能培養審慎的答題與覆檢策略，仔細辨字及審題，減少因粗心大意而引致的失誤，',
+          '若能減少因字體潦草與粗心而引致的失誤，在空閒時多加練習書寫，務求端正整潔，',
+          '惟個性較善忘，偶有欠帶課本及功課的情況，宜養成睡前仔細檢查書包的好習慣，',
+          '盼能改掉欠交功課的陋習，主動依時完成並遞交各項課業，切勿依賴他人督促，',
+          '學習上若能更仔細地跟隨課業要求，戒除作業馬虎的習慣，繼續保持覆檢答題，',
+          '書寫時若能放慢速度，務求筆畫端正、版面整潔，定能減少因字體不清而失分，',
+          '應試及做習作時宜加倍小心，養成完成後反覆核對答案的穩紮習慣，提升答題精準度，',
+          '盼{pronoun}能正視遲交或漏交課業的情況，善用家課冊逐項核對，培養良好的責任感，',
+          '若能在收到批改後的課業時，即時認真訂正錯處並反思原因，定能避免重蹈覆轍，',
+          '惟處理課業有時略嫌急躁草率，若能按部就班地審視題目要求，一絲不苟地作答，',
+          '宜建立有條理的個人物品管理習慣，妥善整理抽屜與工作紙，確保學習物資齊備，',
+          '若能在日常默書與測考中保持審慎態度，留意錯別字與標點符號的運用，',
+          '盼能將責任感延伸至個人課業管理上，自覺按時完成高質素的習作，免於敷衍塞責，',
+          '在計算與抄寫步驟時若能更為細心審慎，減少無謂的筆誤與漏題，'
+        ]
+      },
+      {
+        id: 'proactive_confidence',
+        name: '🙋 課堂主動、發問與解惑 (14句)',
+        items: [
+          '若能鼓起勇氣，不畏對錯，更積極參與課堂提問及小組討論，必能提升學習自信，',
+          '惟學習上較為被動，遇有不明白的疑難宜主動向師長或同學發問求正，切勿積存疑惑，',
+          '盼能減少對補習或他人督促的依賴，培養獨立思考與主動求知的精神，',
+          '若能在課堂討論中大膽抒發個人見解，訓練在群眾面前清楚自信地說話，',
+          '盼{pronoun}能多欣賞自身在學業上的點滴進步，建立自信，勇於跨出舒適圈嘗試新事物，',
+          '若能克服害羞心理，在課堂上主動舉手回答問題，定能進一步激發學習潛能，',
+          '惟面對具挑戰性的題目時略欠自信，若能放膽嘗試、勇於探索，定能突破學習瓶頸，',
+          '盼{pronoun}能改掉等待標準答案的被動習慣，多動腦筋分析問題，養成自發求知的態度，',
+          '在分組討論時若能更投入參與，主動與組員交流想法並分擔匯報工作，',
+          '若能在遇到學習阻滯時及時向師長求助，積極排解疑難，使知識基礎更趨紮實，',
+          '盼能為自己訂立更高更明確的學習目標，主動規劃額外練習，力求自我突破，',
+          '惟對部分學科仍提不起勁，若能發掘當中的學習趣味，以積極進取的心態迎接挑戰，',
+          '若能把思考所得大膽以口頭匯報方式表達出來，定能同步提升自信心與溝通技巧，',
+          '盼{pronoun}能肯定個人能力，減少對犯錯的恐懼，在課堂互動中展現更積極主動的一面，'
+        ]
+      },
+      {
+        id: 'subject_reading',
+        name: '📖 語文朗讀、閱讀與學科突破 (14句)',
+        items: [
+          '若能提升對學習中文的信心，敢於從錯中求正，並多閱讀課外書以鞏固語文根基，',
+          '若能提升學習英文的信心，多看英文故事書並放膽嘗試，敢於從錯中求正，',
+          '縱使數學科表現稍遜，盼勿因此氣餒，多在此科下工夫並向師長請教解難技巧，',
+          '建議在家中多大聲朗讀課文或報章，並配合電視新聞字幕辨認更多書面語，以改善咬字及表達，',
+          '若能把在視藝及體藝上的專注與心思擴展到各學科上，善用餘暇廣泛閱讀有益圖書，',
+          '惟語文詞彙及表達能力尚待充實，宜養成每日定時閱讀的習慣，從佳作中汲取寫作靈感，',
+          '若能多作口頭敘述與朗讀練習，改善發音與咬字的清晰度，語文表達定能更趨流暢，',
+          '在面對語文科閱讀理解與寫作時，若能細心推敲文意並豐富修辭造句，',
+          '盼能加強英文詞彙的拼讀與日常運用，主動參與英語活動以提升語感與自信，',
+          '在數學解難及邏輯推理方面，若能多做不同題型的練習並理清概念，定能迎頭趕上，',
+          '建議課餘多留意報章新聞與科普資訊，擴闊個人知識領域與思考深度，',
+          '惟各科發展略見不均，若能針對較弱的科目多下苦功，按部就班地溫故知新，',
+          '若能善用圖書館資源，廣泛涉獵中、英、數及人文科學等有益讀物，充實知識寶庫，',
+          '盼能將日常觀察所得融入中文寫作與課堂分析中，持之以恆地打穩各科基礎，'
+        ]
+      },
+      {
+        id: 'emotion_social',
+        name: '🤝 情緒管理、語調與人際溝通 (14句)',
+        items: [
+          '惟個性較剛烈急躁，偶爾較易發脾氣，若能學習收斂脾氣，凡事忍讓並與師長議定冷靜方法，',
+          '與同學相處時宜避免作弄他人或因小事爭吵，學習以和平理性的方式溝通及解決摩擦，',
+          '惟須留意與師長及同學說話時的用詞及語調，避免在言語上無意傷害他人，',
+          '若能學習接納不同類型同學的意見，在分組活動中更好地分工合作，定能擴闊社交圈子，',
+          '若能勇於與師長及家人分享內心世界及學習上的困惑，定能邁向更愉快的校園生活，',
+          '面對師長的提醒或善意批評時，盼能保持平和心態虛心納諫，避免因一時衝動而鬧情緒，',
+          '惟偶爾對同儕的無心之失較為執著，若能拓寬胸襟、大事化小，人際關係定更融洽，',
+          '在小組合作中若能多顧及組員的感受，減少固執己見，學習互相配合與包容，',
+          '遇上不公平或意見不合之事，宜先冷靜情緒並尋求師長協助，切勿以意氣用事的方式處理，',
+          '盼{pronoun}能主動打開心扉，積極融入班群並結交更多朋友，在互助互愛中建立良好情誼，',
+          '惟社交技巧尚待磨練，若能多觀察並學習同儕的優點，以友善溫文的態度待人接物，',
+          '若能在表達個人主張時兼顧禮貌與同理心，耐心聆聽他人發言，必能贏得更多同儕支持，',
+          '偶遇小挫折時宜學會深呼吸與自我調節，免於因負面情緒而影響課堂表現，',
+          '盼能減少對友伴情緒的過度牽掛，保持平和獨立的心境，讓人際與學習相得益彰，'
+        ]
+      },
+      {
+        id: 'time_wellbeing',
+        name: '⚖️ 時間分配、減壓與群體活動 (14句)',
+        items: [
+          '盼{pronoun}能訂定作息時間表，妥善分配溫習與遊戲的時間，做到勞逸結合、溫故知新，',
+          '盼{pronoun}能有效平衡課外活動與學習的時間，按部就班地鞏固新知與舊識，',
+          '若在面對挑戰時能寬緊有度，免於過度憂心與勞累，及時疏導個人壓力與負面情緒，',
+          '建議課餘可多參與球類、童軍或社區義工等群體活動，從中培養獨立解難及與人溝通的技巧，',
+          '盼{pronoun}日後能嘗試開拓視野，積極參與多元活動以發掘潛能，',
+          '惟平日完成課業的節奏略慢，若能提升做事效率，合理調配生活作息，定能事半功倍，',
+          '對自身要求頗高，盼在努力向學之餘亦懂得放鬆身心，保持充足休息與愉快心境，',
+          '若能減少沉迷玩樂的時間，做到「溫習時專心溫習，遊戲時盡情遊戲」的規律作息，',
+          '面對學業瓶頸時毋須過度焦慮，宜與家人及師長傾訴以減輕壓力，以正向心態穩步前行，',
+          '建議家長可與孩子共同編訂簡單規律的時間表，分段進行溫習，逐步培養其時間管理能力，',
+          '盼能善用課餘及假期，多參與有益身心的戶外參觀或群體活動，增廣見聞並鍛煉體魄，',
+          '若能在個人興趣以外，多投入校內集體活動與服務，定能進一步拓展社交圈子與領導潛能，',
+          '惟處事偶見依賴，宜從日常生活中多訓練自理與獨立處事的能力，勇敢面對成長中的考驗，',
+          '盼能持之以恆地保持良好的生活規律與正向自勉的習慣，在平衡發展中釋放潛能，'
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 4. STEP 4 DATA: CLOSING PHRASES
+    // =========================================================================
+    const STEP4_CLOSINGS = [
+      { text: '成績必能再進。', desc: '最經典常用（6字）' },
+      { text: '成績進步可期。', desc: '溫和勉勵（6字）' },
+      { text: '成績定必再進。', desc: '肯定語氣（6字）' },
+      { text: '成績可望再進。', desc: '期許語氣（6字）' },
+      { text: '其成績必迎來突破。', desc: '適合具潛質學生（8字）' },
+      { text: '學行必有所長。', desc: '學業品行雙勉（6字）' },
+      { text: '學行必有昇華。', desc: '高雅期許（6字）' },
+      { text: '學行定能日漸精進。', desc: '勉勵持續進步（8字）' },
+      { text: '定能成品學兼優的學生。', desc: '源自舊評語庫經典結尾（10字）' },
+      { text: '心態必能怡然自得。', desc: '適合減壓與情緒調節（8字）' },
+      { text: '必能邁向更均衡的全人發展。', desc: '全人發展結尾（12字）' },
+      { text: '校園生活定能更趨豐盛。', desc: '適合內向或拓展視野（10字）' },
+      { text: '再上一層樓。', desc: '精煉短結尾（5字）' },
+      { text: '', desc: '🚫 不另加結語（如步驟3句末已完整）' }
+    ];
+
+    // =========================================================================
+    // 5. 18 ARCHETYPES CONVERTER (OLD DB -> QPS ELEGANT STYLE <=100 CHARS)
+    // =========================================================================
+    const ARCHETYPE_CONVERSIONS = [
+      {
+        id: 'arch1',
+        title: '1. 熱心服務但學習被動／欠自信',
+        tags: ['承擔', '勇氣', '服務生'],
+        oldText: '熱心服務，辦事盡責，但學習上較被動，如能培養積極主動學習的精神，會有更佳表現。品性純良，希望他在學習上對自己有信心。',
+        qpsChar: '承擔',
+        step1: '{name}樂於服務且富有承擔精神，常主動協助處理班務，辦事認真盡責，值得欣賞。',
+        step2: '',
+        step3: '惟學習方面略為被動及欠自信，若能鼓起勇氣主動發問，積極鞏固新知與舊識，',
+        step4: '成績定能再進。'
+      },
+      {
+        id: 'arch2',
+        title: '2. 活潑好動、頭腦靈活但上課多言分心',
+        tags: ['好奇心', '自律', '好動'],
+        oldText: '活潑好動，頭腦亦十分靈活，上課時略嫌多言好動，易受周圍環境影響，如能自我克制而留心上課，定能成品學兼優的學生。',
+        qpsChar: '好奇心',
+        step1: '{name}頭腦靈活且富好奇心，喜愛探索新事物，課堂上常有獨特見解，值得欣賞。',
+        step2: '',
+        step3: '惟上課時略嫌好動多言，易受環境影響，若能加強自律，免於課間閑談並留心聽講，',
+        step4: '定能成品學兼優的學生。'
+      },
+      {
+        id: 'arch3',
+        title: '3. 文靜有禮、心地善良但害羞少發言',
+        tags: ['仁愛', '尊重', '文靜'],
+        oldText: '性格溫婉沉實，待人有禮，是個心地善良的小女孩。但較少主動表達自己的意見，應多嘗試主動一點，學習勇敢說話。',
+        qpsChar: '仁愛、尊重',
+        step1: '{name}性情溫婉且具仁愛與尊重之心，待人有禮，與同儕相處融洽，值得欣賞。',
+        step2: '其課業乾淨整潔，求學態度認真。',
+        step3: '若能鼓起勇氣，不畏對錯，在課堂討論中更主動表達個人見解，提升自信，',
+        step4: '成績必能再進。'
+      },
+      {
+        id: 'arch4',
+        title: '4. 領導才能出眾、成績優異但須防自滿／減壓',
+        tags: ['承擔', '謙遜', '班長'],
+        oldText: '處事獨立及有條理，對自己有要求，在分組工作中表現領袖才能。他在這次考試中有出色的表現，但切記不要自滿，繼續努力。',
+        qpsChar: '承擔、謙遜',
+        step1: '{name}樂於承擔且處事獨立有條理，在分組工作中展現領袖才能，值得讚賞。',
+        step2: '擔任班長期間，{pronoun}以身作則，盡心盡力為班級服務，深得老師及同學的信任與愛戴。',
+        step3: '盼常保謙遜，不因佳績自滿，並注意勞逸結合，',
+        step4: '再上一層樓。'
+      },
+      {
+        id: 'arch5',
+        title: '5. 樂觀友善、樂於助人但做功課粗心大意',
+        tags: ['樂觀', '審慎', '粗心'],
+        oldText: '性格開朗，為人樂觀，樂於助人，願意接受師長指導；惜有時較粗心大意，需要仔細辨字及審題，小心覆核各項習作。',
+        qpsChar: '樂觀、仁愛',
+        step1: '{name}性格樂觀且富仁愛之心，常面帶微笑並樂於助人，深受同儕愛戴，值得欣賞。',
+        step2: '',
+        step3: '惟做課業及應試時偶有粗心大意，若能培養審慎的態度，仔細辨字審題並勤加覆檢，',
+        step4: '成績必迎來突破。'
+      },
+      {
+        id: 'arch6',
+        title: '6. 具視藝繪畫／舞蹈天份，惟須兼顧學科專注',
+        tags: ['好奇心', '自律', '視藝舞蹈'],
+        oldText: '於美術及舞蹈方面有良好的表現，具創意，如他能把繪畫的心思擴展到其他範疇上，上課更專心投入，相信會有更好的表現。',
+        qpsChar: '好奇心',
+        step1: '{name}兼具創意與好奇心，在視藝及體藝方面展現天賦，作品別出心裁，令人眼前一亮。',
+        step2: '',
+        step3: '盼{pronoun}能把創作的心思擴展至各學科，在課堂上保持專注並自律地規劃溫習時間，',
+        step4: '學行必有所長。'
+      },
+      {
+        id: 'arch7',
+        title: '7. 個性剛烈急躁、易發脾氣但本質善良受教',
+        tags: ['誠信', '同理心', '情緒管理'],
+        oldText: '上課用心，其實是願意接受教導的，對朋友亦很好，但個性較剛烈，情緒容易激動，如能收歛脾氣，心平氣和，必定能和同學愉快相處。',
+        qpsChar: '誠信、同理心',
+        step1: '{name}待人真誠且願意接受師長教導，課堂上亦見用心投入，值得肯定。',
+        step2: '喜見{pronoun}在控制情緒方面漸見努力。',
+        step3: '惟個性較急躁，若能多發揮同理心，與同學相處時收斂脾氣、互相忍讓，',
+        step4: '人際與學業定能共進。'
+      },
+      {
+        id: 'arch8',
+        title: '8. 富正義感、為人率直但處理摩擦欠圓融',
+        tags: ['公平', '尊重', '正義感'],
+        oldText: '為人率直，富有正義感，當看見不平的事情總會挺身而出。可是遇上不公平的事會用自己的方法解決，與同學有不少摩擦，須注意禮貌。',
+        qpsChar: '公平、尊重',
+        step1: '{name}為人率直且重公平，富正義感，能客觀表達己見，不因親疏而偏倚，實屬難得。',
+        step2: '',
+        step3: '惟遇摩擦時宜保持冷靜，學習以尊重和溫和的語調與人溝通，尋求師長協助，',
+        step4: '學行必有昇華。'
+      },
+      {
+        id: 'arch9',
+        title: '9. 善忘欠帶課本／欠交功課，需建立責任感',
+        tags: ['誠信', '承擔', '善忘欠帶'],
+        oldText: '興趣很廣泛，在故事演說方面有潛質。個性較善忘，有欠帶課本及欠交功課的情況，可以培養在上課日前仔細檢查書包的好習慣。',
+        qpsChar: '熱情、承擔',
+        step1: '{name}對學習活動抱持熱情，在故事演說方面具潛質，待人亦友善真誠，值得欣賞。',
+        step2: '',
+        step3: '惟個性較善忘，偶有欠帶課本及欠交課業，盼能強化承擔精神，養成睡前檢查書包的習慣，',
+        step4: '成績進步可期。'
+      },
+      {
+        id: 'arch10',
+        title: '10. 算速快、資質佳但欠耐性傾聽他人意見',
+        tags: ['勤奮', '尊重', '數理強'],
+        oldText: '資質甚佳，凡事有個人的見解，算速比別的同學快。學習接受及容忍不同類型的同學及其意見，改善表達意見的手法，會令他更受歡迎。',
+        qpsChar: '好奇心、尊重',
+        step1: '{name}資質聰穎且富探究精神，心算速度敏捷，對事物常有獨到見解，值得嘉許。',
+        step2: '{pronoun}擔任數學大使表現出色，能主動帶領同學以遊戲形式進行活動，讓數學學習變得生動有趣。',
+        step3: '若能本著尊重之心耐心傾聽不同同學的意見，',
+        step4: '必更受同儕愛戴。'
+      },
+      {
+        id: 'arch11',
+        title: '11. 勤奮自律、字體端正秀麗的模範生',
+        tags: ['自律', '勤奮', '字體端正'],
+        oldText: '學習認真勤奮，書寫端正，字體大方漂亮，作業獨立完成。上課時認真聽課，尊敬師長，關愛同學，一直受老師同學的好評。',
+        qpsChar: '自律、勤奮',
+        step1: '{name}為人自律且勤奮向學，尊敬師長，友愛同儕，展現出良好的品格修養，值得讚賞。',
+        step2: '其書寫端正秀麗，課業總是獨立且一絲不苟地完成。',
+        step3: '盼日後能廣泛閱讀課外書籍並積極參與多元活動以開拓視野，',
+        step4: '邁向更均衡的全人發展。'
+      },
+      {
+        id: 'arch12',
+        title: '12. 運動健將、體魄強健但需平衡學業與玩樂',
+        tags: ['堅毅', '自律', '體育領袖'],
+        oldText: '運動方面表現出色，曾多次代表學校參加運動比賽。喜好玩耍，如能把玩樂時間好好安排，運動和學業也能兼顧的話，能做一位傑出的學生。',
+        qpsChar: '堅毅、團結',
+        step1: '{name}性格堅毅且重視團結，運動天賦出眾，在訓練與比賽中展現不屈不撓的精神，值得讚賞。',
+        step2: '{pronoun}擔任體育領袖充滿幹勁，能妥善主持小息運動場，帶動校園的運動風氣。',
+        step3: '盼加強自律，妥善分配溫習與玩樂時間，上課保持專注，',
+        step4: '定能成為傑出的學生。'
+      },
+      {
+        id: 'arch13',
+        title: '13. 寬宏大量、能原諒他人，惟語文基礎待鞏固',
+        tags: ['仁愛', '感恩', '語文待進'],
+        oldText: '性格開朗，不拘小節，能容忍及原諒作弄他的人，這是很好的美德。惟學科知識根基不穩，宜在家中大聲朗讀課文及多看課外書。',
+        qpsChar: '仁愛、樂觀',
+        step1: '{name}性格樂觀且富仁愛之心，豁達包容，能原諒曾冒犯自己的同儕，美德非常可貴。',
+        step2: '',
+        step3: '惟語文根基尚待鞏固，建議平日多閱讀課外書及大聲朗讀課文，敢於從錯中求正，',
+        step4: '成績定必再進。'
+      },
+      {
+        id: 'arch14',
+        title: '14. 孝順受教、家人支持下進步明顯',
+        tags: ['孝親', '感恩', '信心提升'],
+        oldText: '起初信心不足，現已改善了很多，勇於發問及答問題，很開心看到他的進步，反映出家長的支持，令他信心大增。',
+        qpsChar: '孝親、感恩',
+        step1: '{name}深明孝親與感恩之道，能虛心接受家人與師長的教導，並努力付諸改善，值得欣賞。',
+        step2: '喜見在家人的扶持下，其學習自信與課堂參與度均顯著提升。',
+        step3: '盼能持之以恆地溫故知新，進一步鞏固學科基礎，',
+        step4: '成績可望再進。'
+      },
+      {
+        id: 'arch15',
+        title: '15. 依賴性較強、懼怕挫折，需培養獨立解難',
+        tags: ['勇氣', '堅毅', '獨立性'],
+        oldText: '善良沉實，但欠缺自信，較依賴別人，遇到挫折時較難去獨立處理。建議他在閒時可參與群體活動，如球類、童軍等，培養解難技巧。',
+        qpsChar: '誠信、勇氣',
+        step1: '{name}品性純良沉實，待人真誠友善，在班中與同學相處融洽，值得欣賞。',
+        step2: '',
+        step3: '惟處事較依賴師長督促，盼能培養勇氣與堅毅精神，多參與群體活動以鍛煉獨立解難能力，',
+        step4: '校園生活定更豐盛。'
+      },
+      {
+        id: 'arch16',
+        title: '16. 敢想敢問、口才極佳但需注意說話語調',
+        tags: ['好奇心', '尊重', '說話能力'],
+        oldText: '主動學習能力頗強，老師喜歡她那種敢想、敢說、敢問、敢辯的課堂表現。但須留意與老師及同學說話時之用詞及語調。',
+        qpsChar: '好奇心、勇氣',
+        step1: '{name}富好奇心與勇氣，課堂上敢想敢問，語言表達能力優秀，常有獨到見解，值得讚賞。',
+        step2: '',
+        step3: '惟須常懷尊重之心，留意與師長及同儕說話時的用詞與語調，做到溫文有禮、謹言慎行，',
+        step4: '學行必有所長。'
+      },
+      {
+        id: 'arch17',
+        title: '17. 關心時事、愛思考，宜配合新聞字幕學書面語',
+        tags: ['好奇心', '審慎', '書面語'],
+        oldText: '對身邊事物時事亦十分關心，會就問題抒發個人的見解。但語文表達能力有待提高，建議收看電視新聞節目時配合字幕以辨認更多書面語。',
+        qpsChar: '好奇心、審慎',
+        step1: '{name}具好奇心與審慎思考的能力，關心身邊時事，樂於在課堂上抒發個人見解，值得欣賞。',
+        step2: '',
+        step3: '若能多閱佳作，並在收看新聞時配合字幕辨認書面語，定能豐富詞彙並提升寫作表達，',
+        step4: '成績必能再進。'
+      },
+      {
+        id: 'arch18',
+        title: '18. 同理心強、重感情但偶因社交分心學業',
+        tags: ['同理心', '自律', '專注力'],
+        oldText: '是個有愛心的小孩子，對同學很友善。不過有時過重感情反而成為學習上的障礙，令到精神不能集中，建議從靜態閱讀中培養集中力。',
+        qpsChar: '同理心、仁愛',
+        step1: '{name}兼具同理心與仁愛精神，善於體察同儕情緒並給予支持與關懷，非常可貴。',
+        step2: '',
+        step3: '惟有時因記掛人際而分心，盼能加強自律，透過靜態閱讀培養專注力，平衡社交與學習，',
+        step4: '成績進步可期。'
+      }
+    ];
+
+    // =========================================================================
+    // 6. AUTHENTIC 2627_班評.docx SAMPLES (ALL 24 STUDENTS, 48 COMMENTS)
+    // =========================================================================
+    const SAMPLES_2627 = [
+      { name: '卓瑋', term: '上學期', chars: ['同理心'], text: '卓瑋品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。若能勇於表達自己於人際關係及學習上的困惑，即能更進一步邁向樂觀的校園生活。' },
+      { name: '卓瑋', term: '下學期', chars: ['孝親', '謙遜'], text: '卓瑋深明孝親之道，能虛心接受家人與師長的意見，亦懂反思挫折並付諸具體改善，值得欣賞。盼其能調適身心，保持個人健康並減輕壓力，更完整地參與學習歷程。同時，積極融入社交圈子，與同儕進一步建立良好情誼。' },
+      { name: '楚悠', term: '上學期', chars: ['感恩', '勇氣'], text: '楚悠為人寬容並懂得感恩，除了珍惜他人的付出外，更願意報以行動表達謝意，非常可貴。若能鼓起勇氣，更積極參與課堂提問，必能提升學習的自信心。' },
+      { name: '楚悠', term: '下學期', chars: ['同理心', '勤奮'], text: '楚悠品性純良且兼具同理心，善於表達關懷及鼓勵，值得欣賞。喜見她的學習自信漸長，課業亦見整齊與認真，並會主動規劃及完成額外的練習。盼其日後能嘗試開拓視野，積極發展多元潛能，以達至更均衡的全人發展。' },
+      { name: '熙彤', term: '上學期', chars: ['公平', '自律'], text: '熙彤為人率直且著重公平，能客觀地表達個人意見，不因同儕親疏而有所偏倚，實屬難得。若能提高自律性，妥善安排學習時間，更專注地完成課業則更佳。' },
+      { name: '熙彤', term: '下學期', chars: ['樂觀'], text: '熙彤性格樂觀，豁達包容，與同儕相處融洽，值得欣賞。其在芭蕾舞上展現天賦，表現亮眼。盼其能有效平衡課外活動與學習的時間，並在課堂上保持專注。若能積極提升對學習中文的信心，敢於從錯中求正，成績必能再進。' },
+      { name: '信攸', term: '上學期', chars: ['好奇心'], text: '信攸兼具創意力與好奇心，觀其視藝作品與課堂問答，常有別出心裁的想法，讓人眼前一亮。其學行表現均不俗，若能為自己訂立更高的學習目標，成績必能再進。' },
+      { name: '信攸', term: '下學期', chars: ['公平'], text: '信攸品性率直，能客觀地表達意見，不因同儕親疏而有所偏袒，實屬難得。喜見其能突破自我，於傑出好學生選舉中盡展潛能，且學行俱佳。若在面對挑戰及挫折時，能及時疏導個人壓力與負面情緒，心態必能怡然自得。' },
+      { name: '芷茵', term: '上學期', chars: ['承擔'], text: '芷茵樂於服務且富有承擔精神，常主動協助處理班務，並仔細匯報工作進度，值得欣賞。惟學習方面略欠自信，如能盡己所能，積極鞏固新知與舊識，成績定能再進。' },
+      { name: '芷茵', term: '下學期', chars: ['樂觀'], text: '芷茵性格樂觀，能以正面心態看待自身成長。喜見其在同儕的扶持下，學習自信及默書成績穩步提升。盼其能勞逸結合，妥善安排溫習的時間，積極解惑，溫故知新，使基礎更趨紮實，為未來的學習做好充分準備。' },
+      { name: '敬捷', term: '上學期', chars: ['謙遜', '自律'], text: '敬捷為人謙遜且自律，能以平常心面對他人的讚賞，善於安排學習的時間，做事具條理，值得欣賞。若能勇於表達學習上的疑難，必能進一步提升學習效能。' },
+      { name: '敬捷', term: '下學期', chars: ['自律', '審慎', '勇氣'], text: '敬捷克己自律，處事審慎。喜見其在課堂上勇於表達個人意見，懂得反思個人學習表現，亦不斷提升自我要求，學行俱佳，值得讚賞。若能提升對學習中文的信心，敢於從錯中求正，使基礎更趨紮實，成績必能再進。' },
+      { name: '子樂', term: '上學期', chars: ['仁愛', '誠信'], text: '子樂為人真誠且擁有仁愛之心，善於陪伴與安慰同儕，非常可貴。欣賞他能勇於嘗試擔任數學大使，喜見其學習自信與成績均有躍進。書寫時若能更認真及端正，成績可望再進。' },
+      { name: '子樂', term: '下學期', chars: ['尊重'], text: '子樂品性純良，能客觀聆聽同儕見解並給予真誠肯定，值得欣賞。其運動天賦出眾，身手敏捷，盼能進一步開拓潛能。若能免於過度憂心，多欣賞自身在學業上的點滴進步，並及時排解學習疑惑，成績定必再進。' },
+      { name: '鎧添', term: '上學期', chars: ['樂觀', '勇氣'], text: '鎧添為人樂觀，善於鼓勵及排解同儕的憂慮，且能正面及積極地接觸新事物，不畏挫折錯，實屬難得。若能為自己訂立更高的學習目標，成績必能再進。' },
+      { name: '鎧添', term: '下學期', chars: ['樂觀', '審慎'], text: '鎧添為人樂觀，處事獨立，在擔任領袖生隊長一職上，有條不紊，精明幹練，值得信賴。若能在課堂上保持專注和積極求知的態度，書寫時務求端正認真，並培養審慎的答題策略，減少因粗心而引致的失誤，其成績必迎來突破。' },
+      { name: '家橋', term: '上學期', chars: ['感恩'], text: '家橋品性純良且懂得感恩，除了珍惜他人的付出外，更願意報以行動表達謝意，讓人非常温暖。學習上若能更仔細地跟隨課業要求，繼續保持覆檢答題的習慣則更佳。' },
+      { name: '家橋', term: '下學期', chars: ['仁愛', '審慎'], text: '家橋為人真誠，心懷仁愛，善於鼓勵及安慰同儕。其應試態度專注，且具備穩紮的覆檢策略，值得嘉許。若平日能有效調配生活節奏，合理地提升完成課業之效率，平衡勞逸作息，成績可望再進。' },
+      { name: '劉川', term: '上學期', chars: ['樂觀'], text: '劉川性格樂觀，不拘泥於小挫折，能欣賞個人進步並懂得自勉。喜見他於成績進步後，於學習上更有自信，惟須持之而行地實踐積極的學習態度，認真完成課業，免於怠惰。' },
+      { name: '劉川', term: '下學期', chars: ['樂觀', '公平', '審慎'], text: '劉川為人樂觀且著重公平，在擔任領袖生隊長一職上，有條不紊，值得信賴。喜見其日常書寫漸趨端正認真，若能保持專注和積極求知的態度，勇於從錯中求正，並培養審慎的答題策略以減少粗心失誤，成績進步可期。' },
+      { name: '沚卓', term: '上學期', chars: ['同理心', '承擔', '自律'], text: '沚卓品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。若能勇於承擔與積極地面對錯失，並自律地安排學習的時間，勤加覆檢答題，學行必有昇華。' },
+      { name: '沚卓', term: '下學期', chars: ['承擔', '自律'], text: '沚卓樂於服務且具承擔精神，常主動協助處理班務，值得欣賞。盼其能將責任感延伸至個人學習中，加強自律，妥善分配溫習與嬉戲的時間。若能減少因字體潦草與粗心而引致的失誤，答題必更趨精準。' },
+      { name: '子敬', term: '上學期', chars: ['承擔', '審慎'], text: '子敬樂於承擔，在領袖生隊長一職上，展現出獨立的處事態度與具條理的工作能力，值得信賴。喜見其在課堂上能保持積極求知的態度，並逐漸培養出審慎的答題策略，望能持之以行，免於鬆懈。' },
+      { name: '子敬', term: '下學期', chars: ['承擔', '勇氣'], text: '子敬樂於承擔且兼具勇氣，除了懂得自省，坦然面對挫折，亦能客觀理性地表達意見，實屬難得。其學行表現俱佳，若能提升自我要求，必能進一步釋出學習潛能，成績可望再進。' },
+      { name: '臻晞', term: '上學期', chars: ['堅毅', '團結'], text: '臻晞性格堅毅且具運動天賦，能孜孜不倦地練習，亦重視團結，在分組工作中屢見領袖才能，值得讚賞。若能免於課間閑談並達至謹言慎行，學行必有所長。' },
+      { name: '臻晞', term: '下學期', chars: ['樂觀', '自律'], text: '臻晞性格樂觀，不拘泥於小挫折，能欣賞個人進步並懂得自勉。其體藝表現不俗，惟在課堂上須持之以恆地保持專注，摒除課間擺弄文具等情況，以提高學習效益。若能深化自律，達至謹言慎行，其學行必有所長。' },
+      { name: '凱淳', term: '上學期', chars: ['自律', '勤奮'], text: '凱淳為人自律且勤奮，能同時兼顧學業與諸多課外活動，達至均衡的發展，實屬難得。喜見其在課堂上勇於表達個人意見，亦不斷提升自我要求。若能免於勞累，多放鬆，心態必能怡然自得。' },
+      { name: '凱淳', term: '下學期', chars: ['勤奮'], text: '凱淳好學不倦，對自身期許頗高。其能有效分配時間，兼顧學術與課外活動，英文能力卓越，體藝表現俱佳，實屬難得。喜見其樂於融入群體，與同儕建立友好情誼。盼其能寬緊有度，免於勞累，學會放鬆身心。' },
+      { name: '銥琪', term: '上學期', chars: ['仁愛', '勇氣'], text: '銥琪個性文靜且擁有仁愛之心，雖不善言辭，但能常伴同儕左右，並給予支持，值得欣賞。若能不畏對錯，勇於表達個人意見，並積極探索個人潛能則更佳。' },
+      { name: '銥琪', term: '下學期', chars: ['誠信'], text: '銥琪品性純良且待人真誠，與同儕關係友好，值得欣賞。喜見其在同儕的扶持下，學習積極性日漸提升。盼其日後能展現寬心與自信，勇於跨出舒適圈，嘗試新事物以開拓視野，發展多元潛能，校園生活定能更趨豐盛。' },
+      { name: '心祈', term: '上學期', chars: ['同理心'], text: '心祈品性純良且兼具同理心，洞悉同儕的負面情緒，善於表達關懷及鼓勵，值得欣賞。若能免於課間擺弄文具，妥善安排學習時間，處事達至謹言慎行，學行必有所長。' },
+      { name: '心祈', term: '下學期', chars: ['好奇心', '自律', '承擔'], text: '心祈富創意且具好奇心，其視藝作品與課堂問答皆展現個人巧思，讓人眼前一亮。盼其能更專注於課堂講解，仔細依循課業進度，並自律地規劃學習時間。同時，保持勇於承擔，積極面對過失的態度，學行定能日漸精進。' },
+      { name: '悦瞳', term: '上學期', chars: ['樂觀', '自律'], text: '悦瞳性格樂觀，不拘泥於小挫折，並懂得欣賞個人的進步。喜見她於家人的支持下，學習表現有所進步。惟須更自律，妥善安排溫習的時間，鞏固新知與舊識，方能跟上未來學習的步伐。' },
+      { name: '悦瞳', term: '下學期', chars: ['承擔'], text: '悦瞳樂於承擔，在膳長一職上，能展現出具條理的工作能力，值得信賴。喜見其課業的完成度漸見提升，亦會主動尋求同儕的協助，態度正面。若能減少課間傾談，妥善安排溫習時間，積極解惑，溫故知新，成績進步可期。' },
+      { name: '芷珊', term: '上學期', chars: ['承擔'], text: '芷珊樂於承擔，在班長一職上，展現出獨立的處事態度與井然有序的工作能力，值得信賴。喜見她的學習表現穩步向上，若能積極參與課堂提問，及時排解學習疑惑，成績定必再進。' },
+      { name: '芷珊', term: '下學期', chars: ['勇氣', '審慎'], text: '芷珊品性純良且具勇氣，除了懂得自省並付諸具體改善外，亦善於表達關懷及鼓勵他人，值得欣賞。若能不畏對錯，積極參與課堂問答，並培養穩紮的覆檢策略，提升學習的自信心，成績定能再進。' },
+      { name: '諾謙', term: '上學期', chars: ['自律', '堅毅'], text: '諾謙為人自律且堅毅，喜見他能正視個人的學習困難，敢於從錯誤中求正，閱讀和書寫中文的能力穩步向上，讓人鼓舞。若能放鬆自己，及時疏導個人壓力或是負面情緒，心態必能怡然自得。' },
+      { name: '諾謙', term: '下學期', chars: ['同理心'], text: '諾謙品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。喜見其在課堂上勇於表達個人意見，亦不斷提升自我要求。盼其面對學習瓶頸時，能寬緊有度，察覺並欣賞自身的進步，在正向與平衡的心態中穩步前進。' },
+      { name: '孟昇', term: '上學期', chars: ['審慎'], text: '孟昇具審慎的精神，應試專注亦培養了穩紮的覆檢策略，值得欣賞。喜見他能逐漸享受與同儕的相處及交流，若能勇於表達個人的憂慮，進一步邁向愉快的校園生活則更佳。' },
+      { name: '孟昇', term: '下學期', chars: ['承擔'], text: '孟昇為人率直且樂於承擔，在領袖生一職上，展現出獨立的處事能力，值得信賴。喜見其能主動為同儕解惑，攜手成長，發揮正能量。盼其日後能嘗試開拓視野，積極發展多元潛能，以邁向更均衡的全人發展。' },
+      { name: '俊軒', term: '上學期', chars: ['尊重'], text: '俊軒品性純良且懂得尊重，雖不善言辭，但能不偏頗地聆聽同儕的意見及給予肯定，值得欣賞。若能免於憂心，謹記友好的同儕可給予支持，勇於嘗試新事物則更佳。' },
+      { name: '俊軒', term: '下學期', chars: ['仁愛', '誠信'], text: '俊軒為人真誠且富仁愛之心，樂於陪伴與安慰同儕，品格可貴。欣賞他勇於擔任數學大使，其學習自信與成績皆有所增長。若在語文科目遇到學習瓶頸時，能更主動提出疑問並積極求助，學業定能更進一步。' },
+      { name: '永楷', term: '上學期', chars: ['孝親', '尊重'], text: '永楷懂得孝親之道，樂於尊重和接受家人與長輩的意見，反思成長中的困惑與挫折，並作出具體的改善，值得欣賞。喜見他的課堂專注度漸見提升，課業亦見整齊與認真，望能持之而行。' },
+      { name: '永楷', term: '下學期', chars: ['好奇心', '審慎'], text: '永楷具創意與好奇心，視藝作品別出心裁，令人眼前一亮。盼其上課能保持專注，平衡學習與玩樂之心，並培養審慎答題策略以減少粗心失誤。若能提升學習英文的信心，敢於從錯中求正，成績進步可期。' },
+      { name: '子倬', term: '上學期', chars: ['好奇心'], text: '子倬兼具創意力與好奇心，觀其視藝作品與課堂問答，常有別出心裁的想法，讓人眼前一亮。若能提升對學習中文的信心，敢於錯中求正，成績必能再進。' },
+      { name: '子倬', term: '下學期', chars: ['好奇心'], text: '子倬具獨創性且善於觀察，富藝術潛能。其能同時兼顧學業與體藝活動，達至均衡的發展，實屬難得。喜見其在課堂上勇於表達個人意見，盼能多肯定自我，察覺並欣賞自身在中文科的點滴進步。' },
+      { name: '珈嘉', term: '上學期', chars: ['承擔', '勇氣'], text: '珈嘉樂於承擔且具勇氣，除了懂得自省，勇於承擔過失，亦能客觀地表達個人意見，實屬難得。其學行表現均不俗，若能提升自我要求，學習成效定能更佳。' },
+      { name: '珈嘉', term: '下學期', chars: ['自律', '堅毅'], text: '珈嘉為人自律且堅毅，喜見其在課堂上勇於表達己見，敢於從錯中求正，亦不斷提升自我要求，力臻進步，讓人鼓舞。其學行均表現不俗，體藝亦得平衡發展，盼其能保持積極自勉的習慣，在正向的心態中穩步前進。' }
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE
+    // =========================================================================
+    let currentStep = 3; // Default open Step 3 so user immediately sees the expanded 84 advice sentences
+    let activeCharacterId = 'empathy';
+    let activeStep2Category = 'class_roles';
+    let activeServiceRoleFilter = 'ALL';
+    let activeClassRoleFilter = 'ALL';
+    let selectedSubjectRepName = '科長';
+    let activeStep3Category = 'focus_rules';
+    let selectedPronoun = '其';
+
+    let selectedSegments = {
+      1: '{name}品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。',
+      2: '{pronoun}本學年擔任班長，表現盡責，能妥善協助班主任處理班級事務，是老師的得力助手。',
+      3: '若能在課堂上保持專注，免於課間閑談及擺弄文具，定能提高學習效益，',
+      4: '成績必能再進。'
+    };
+
+    let savedClassList = [
+      {
+        name: '卓瑋',
+        chars: ['同理心'],
+        text: '卓瑋品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。其本學年擔任班長，表現盡責，能妥善協助班主任處理班級事務，是老師的得力助手。若能勇於表達學習困惑，成績必能再進。'
+      },
+      {
+        name: '子樂',
+        chars: ['仁愛', '誠信'],
+        text: '子樂為人真誠且擁有仁愛之心，善於陪伴與安慰同儕，非常可貴。其擔任數學大使表現出色，能主動帶領同學以遊戲形式進行活動，讓數學學習變得生動有趣。書寫時若能更端正，成績可望再進。'
+      }
+    ];
+
+    const SAMPLE_NAMES = ['卓瑋', '楚悠', '熙彤', '信攸', '芷茵', '敬捷', '子樂', '鎧添', '家橋', '劉川', '沚卓', '子敬', '臻晞', '凱淳', '銥琪', '心祈', '悦瞳', '芷珊', '諾謙', '孟昇', '俊軒', '永楷', '子倬', '珈嘉'];
+
+    // =========================================================================
+    // INITIALIZATION
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCharacterGrid();
+      selectCharacter('empathy');
+      renderStep2Tabs();
+      renderStep2Sentences();
+      renderStep3Tabs();
+      renderStep3Sentences();
+      renderStep4Sentences();
+      switchStep(3);
+      reAssembleFromSteps();
+      renderArchetypeCards();
+      render2627Samples();
+      renderSavedList();
+    });
+
+    // =========================================================================
+    // RENDER & INTERACTION FUNCTIONS
+    // =========================================================================
+    function formatTemplate(template) {
+      if (!template) return '';
+      const name = document.getElementById('student-name').value.trim() || '學生';
+      return template
+        .replace(/\{name\}/g, name)
+        .replace(/\{pronoun\}/g, selectedPronoun)
+        .replace(/\{subject_rep\}/g, selectedSubjectRepName);
+    }
+
+    function renderCharacterGrid() {
+      const grid = document.getElementById('character-grid');
+      grid.innerHTML = QPS_CHARACTERS.map(char => {
+        const isSelected = char.id === activeCharacterId;
+        return `
+          <button onclick="selectCharacter('${char.id}')"
+            class="p-2 rounded-xl border text-left transition flex flex-col justify-between ${
+              isSelected
+                ? `${char.lightBg} ${char.border} ring-2 ring-teal-600/30 shadow-sm`
+                : 'bg-white border-slate-200 hover:bg-slate-50'
+            }">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-extrabold ${char.textColor}">${char.name}</span>
+              <span class="w-2 h-2 rounded-full ${char.color}"></span>
+            </div>
+            <span class="text-[10px] text-slate-400 mt-1 truncate">${char.category}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCharacter(charId) {
+      activeCharacterId = charId;
+      document.getElementById('step1-search').value = '';
+      renderCharacterGrid();
+
+      const charObj = QPS_CHARACTERS.find(c => c.id === charId);
+      if (!charObj) return;
+
+      const badge = document.getElementById('active-char-badge');
+      badge.textContent = charObj.name;
+      badge.className = `px-2.5 py-1 rounded-lg text-xs font-extrabold text-white shadow-sm ${charObj.color}`;
+
+      document.getElementById('active-char-category').textContent = `【${charObj.category}】`;
+      document.getElementById('active-char-def').textContent = charObj.definition;
+
+      filterStep1Sentences();
+    }
+
+    function filterStep1Sentences() {
+      const query = document.getElementById('step1-search').value.trim().toLowerCase();
+      const listEl = document.getElementById('step1-sentences-list');
+
+      let pool = [];
+      if (query) {
+        QPS_CHARACTERS.forEach(c => {
+          c.examples.forEach(ex => {
+            const formatted = formatTemplate(ex);
+            if (formatted.toLowerCase().includes(query) || c.name.includes(query)) {
+              pool.push({ charName: c.name, charColor: c.color, raw: ex, formatted });
+            }
+          });
+        });
+      } else {
+        const charObj = QPS_CHARACTERS.find(c => c.id === activeCharacterId);
+        if (charObj) {
+          pool = charObj.examples.map(ex => ({
+            charName: charObj.name,
+            charColor: charObj.color,
+            raw: ex,
+            formatted: formatTemplate(ex)
+          }));
+        }
+      }
+
+      if (pool.length === 0) {
+        listEl.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">找不到符合「${query}」的品格例句</div>`;
+        return;
+      }
+
+      listEl.innerHTML = pool.map((item) => {
+        const isCurrent = selectedSegments[1] === item.raw;
+        const encodedRaw = encodeURIComponent(item.raw);
+        return `
+          <div onclick="selectStepSentence(1, decodeURIComponent('${encodedRaw}'))"
+            class="sentence-card p-3 rounded-xl border cursor-pointer bg-white flex items-start justify-between gap-2 ${
+              isCurrent ? 'selected' : 'border-slate-200 hover:border-teal-400'
+            }">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold text-white ${item.charColor}">${item.charName}</span>
+                <span class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${item.formatted}</span>
+              </div>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 shrink-0 mt-0.5">${item.formatted.length}字</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStep2Tabs() {
+      const container = document.getElementById('step2-cat-tabs');
+      container.innerHTML = STEP2_CATEGORIES.map(cat => {
+        const active = cat.id === activeStep2Category;
+        return `
+          <button onclick="switchStep2Category('${cat.id}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              active ? 'bg-teal-700 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }">
+            ${cat.name}
+          </button>
+        `;
+      }).join('');
+
+      const serviceRoleFilterBar = document.getElementById('service-role-quick-filter');
+      const classRoleFilterBar = document.getElementById('class-role-quick-filter');
+
+      if (activeStep2Category === 'service_leaders') {
+        serviceRoleFilterBar.classList.remove('hidden');
+        classRoleFilterBar.classList.add('hidden');
+      } else if (activeStep2Category === 'class_roles') {
+        serviceRoleFilterBar.classList.add('hidden');
+        classRoleFilterBar.classList.remove('hidden');
+      } else {
+        serviceRoleFilterBar.classList.add('hidden');
+        classRoleFilterBar.classList.add('hidden');
+      }
+    }
+
+    function switchStep2Category(catId) {
+      activeStep2Category = catId;
+      renderStep2Tabs();
+      renderStep2Sentences();
+    }
+
+    function filterServiceRole(roleName) {
+      activeServiceRoleFilter = roleName;
+      document.querySelectorAll('.role-chip').forEach(btn => {
+        if (btn.getAttribute('data-role') === roleName) {
+          btn.className = 'role-chip px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-700 text-white transition';
+        } else {
+          btn.className = 'role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-teal-800 border border-teal-200 hover:bg-teal-100 transition';
+        }
+      });
+      renderStep2Sentences();
+    }
+
+    function filterClassRole(roleName) {
+      activeClassRoleFilter = roleName;
+      document.querySelectorAll('.class-role-chip').forEach(btn => {
+        if (btn.getAttribute('data-crole') === roleName) {
+          btn.className = 'class-role-chip px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+        } else {
+          btn.className = 'class-role-chip px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition';
+        }
+      });
+      renderStep2Sentences();
+    }
+
+    function setSubjectRepName(subjName) {
+      selectedSubjectRepName = subjName;
+      document.querySelectorAll('.subj-chip').forEach(btn => {
+        if (btn.getAttribute('data-subj') === subjName) {
+          btn.className = 'subj-chip px-2 py-0.5 rounded text-xs font-bold bg-amber-600 text-white transition';
+        } else {
+          btn.className = 'subj-chip px-2 py-0.5 rounded text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-amber-50 transition';
+        }
+      });
+      renderStep2Sentences();
+      reAssembleFromSteps();
+    }
+
+    function quickInsertServiceRole(roleName) {
+      switchStep(2);
+      switchStep2Category('service_leaders');
+      filterServiceRole(roleName);
+      const cat = STEP2_CATEGORIES.find(c => c.id === 'service_leaders');
+      if (cat) {
+        const match = cat.items.find(item => item.role === roleName);
+        if (match) {
+          selectStepSentence(2, match.text);
+          showToast(`已載入「${roleName}」第1條評語（可於左側清單切換其餘3條選項）`);
+        }
+      }
+    }
+
+    function quickInsertClassRole(roleName) {
+      switchStep(2);
+      switchStep2Category('class_roles');
+      filterClassRole(roleName);
+      const cat = STEP2_CATEGORIES.find(c => c.id === 'class_roles');
+      if (cat) {
+        const match = cat.items.find(item => item.role === roleName);
+        if (match) {
+          selectStepSentence(2, match.text);
+          showToast(`已載入「${roleName}」第1條評語（可於左側清單切換其餘3條選項）`);
+        }
+      }
+    }
+
+    function renderStep2Sentences() {
+      const cat = STEP2_CATEGORIES.find(c => c.id === activeStep2Category);
+      const listEl = document.getElementById('step2-sentences-list');
+      if (!cat) return;
+
+      let itemsToRender = cat.items;
+      if (cat.id === 'service_leaders' && activeServiceRoleFilter !== 'ALL') {
+        itemsToRender = itemsToRender.filter(item => item.role === activeServiceRoleFilter);
+      } else if (cat.id === 'class_roles' && activeClassRoleFilter !== 'ALL') {
+        itemsToRender = itemsToRender.filter(item => item.role === activeClassRoleFilter);
+      }
+
+      listEl.innerHTML = itemsToRender.map(item => {
+        const isObject = typeof item === 'object';
+        const raw = isObject ? item.text : item;
+        const formatted = formatTemplate(raw);
+        const isCurrent = selectedSegments[2] === raw;
+        const encodedRaw = encodeURIComponent(raw);
+
+        let badgeHtml = '';
+        if (isObject) {
+          const isClassRole = cat.id === 'class_roles';
+          const roleBadgeBg = isClassRole ? 'bg-indigo-700' : 'bg-teal-700';
+          const displayRoleName = item.role === '各科科長' ? `各科科長 (${selectedSubjectRepName})` : item.role;
+          badgeHtml = `
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold ${roleBadgeBg} text-white">${displayRoleName}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200">${item.mode}</span>
+            </div>
+          `;
+        }
+
+        return `
+          <div onclick="selectStepSentence(2, decodeURIComponent('${encodedRaw}'))"
+            class="sentence-card p-3 rounded-xl border cursor-pointer bg-white flex items-start justify-between gap-2 ${
+              isCurrent ? 'selected' : 'border-slate-200 hover:border-teal-400'
+            }">
+            <div>
+              ${badgeHtml}
+              <span class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${formatted}</span>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 shrink-0 mt-0.5">${formatted.length}字</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStep3Tabs() {
+      const container = document.getElementById('step3-cat-tabs');
+      container.innerHTML = STEP3_CATEGORIES.map(cat => {
+        const active = cat.id === activeStep3Category;
+        return `
+          <button onclick="switchStep3Category('${cat.id}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              active ? 'bg-teal-700 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }">
+            ${cat.name}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchStep3Category(catId) {
+      activeStep3Category = catId;
+      document.getElementById('step3-search').value = '';
+      renderStep3Tabs();
+      renderStep3Sentences();
+    }
+
+    function renderStep3Sentences() {
+      const query = document.getElementById('step3-search').value.trim().toLowerCase();
+      const listEl = document.getElementById('step3-sentences-list');
+
+      let items = [];
+      if (query) {
+        STEP3_CATEGORIES.forEach(cat => {
+          cat.items.forEach((raw, idx) => {
+            const formatted = formatTemplate(raw);
+            if (formatted.toLowerCase().includes(query)) {
+              items.push({ catName: cat.name.split(' ')[0], index: idx + 1, raw, formatted });
+            }
+          });
+        });
+      } else {
+        const cat = STEP3_CATEGORIES.find(c => c.id === activeStep3Category);
+        if (cat) {
+          items = cat.items.map((raw, idx) => ({ catName: '', index: idx + 1, raw, formatted: formatTemplate(raw) }));
+        }
+      }
+
+      if (items.length === 0) {
+        listEl.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">找不到符合「${query}」的改善建議</div>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map(item => {
+        const isCurrent = selectedSegments[3] === item.raw;
+        const encodedRaw = encodeURIComponent(item.raw);
+        return `
+          <div onclick="selectStepSentence(3, decodeURIComponent('${encodedRaw}'))"
+            class="sentence-card p-3 rounded-xl border cursor-pointer bg-white flex items-start justify-between gap-2 ${
+              isCurrent ? 'selected' : 'border-slate-200 hover:border-teal-400'
+            }">
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">#${item.index}</span>
+                ${item.catName ? `<span class="inline-block text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">${item.catName}</span>` : ''}
+                <p class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${item.formatted}</p>
+              </div>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 shrink-0 mt-0.5">${item.formatted.length}字</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStep4Sentences() {
+      const listEl = document.getElementById('step4-sentences-list');
+      listEl.innerHTML = STEP4_CLOSINGS.map(item => {
+        const isCurrent = selectedSegments[4] === item.text;
+        const encodedText = encodeURIComponent(item.text);
+        return `
+          <div onclick="selectStepSentence(4, decodeURIComponent('${encodedText}'))"
+            class="sentence-card p-3 rounded-xl border cursor-pointer bg-white flex items-center justify-between ${
+              isCurrent ? 'selected' : 'border-slate-200 hover:border-teal-400'
+            }">
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-slate-800">${item.text || '（不另加結語）'}</div>
+              <div class="text-[11px] text-slate-400">${item.desc}</div>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400">${item.text.length}字</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectStepSentence(stepNum, rawTemplate) {
+      selectedSegments[stepNum] = rawTemplate;
+      if (stepNum === 1) filterStep1Sentences();
+      if (stepNum === 2) renderStep2Sentences();
+      if (stepNum === 3) renderStep3Sentences();
+      if (stepNum === 4) renderStep4Sentences();
+      reAssembleFromSteps();
+    }
+
+    function switchStep(stepNum) {
+      currentStep = stepNum;
+      for (let i = 1; i <= 4; i++) {
+        const tab = document.getElementById(`step-tab-${i}`);
+        const content = document.getElementById(`step-content-${i}`);
+        if (i === stepNum) {
+          tab.className = 'step-tab py-3 px-2 text-center border-b-2 border-teal-600 bg-white font-bold text-teal-800 text-xs sm:text-sm transition relative';
+          content.classList.remove('hidden');
+        } else {
+          tab.className = 'step-tab py-3 px-2 text-center border-b-2 border-transparent font-medium text-slate-600 hover:text-slate-900 text-xs sm:text-sm transition relative';
+          content.classList.add('hidden');
+        }
+      }
+    }
+
+    function setPronoun(p) {
+      selectedPronoun = p;
+      document.querySelectorAll('.pronoun-btn').forEach(btn => {
+        btn.className = 'pronoun-btn py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+      });
+      const idMap = {
+        '其': 'pronoun-qi',
+        '該生': 'pronoun-gaisheng',
+        '他': 'pronoun-ta1',
+        '她': 'pronoun-ta2'
+      };
+      const activeBtn = idMap[p] || 'pronoun-qi';
+      document.getElementById(activeBtn).className = 'pronoun-btn py-1.5 rounded-lg text-xs font-bold bg-white text-teal-800 shadow-sm transition';
+      handleNameOrPronounChange();
+    }
+
+    function handleNameOrPronounChange() {
+      filterStep1Sentences();
+      renderStep2Sentences();
+      renderStep3Sentences();
+      reAssembleFromSteps();
+    }
+
+    function pickRandomSampleStudent() {
+      const current = document.getElementById('student-name').value;
+      const pool = SAMPLE_NAMES.filter(n => n !== current);
+      const next = pool[Math.floor(Math.random() * pool.length)];
+      document.getElementById('student-name').value = next;
+      handleNameOrPronounChange();
+    }
+
+    function reAssembleFromSteps() {
+      const s1 = formatTemplate(selectedSegments[1]);
+      const s2 = formatTemplate(selectedSegments[2]);
+      let s3 = formatTemplate(selectedSegments[3]);
+      const s4 = formatTemplate(selectedSegments[4]);
+
+      if (!s4 && s3.endsWith('，')) {
+        s3 = s3.slice(0, -1) + '。';
+      } else if (s4 && s3.endsWith('。')) {
+        s3 = s3.slice(0, -1) + '，';
+      }
+
+      const fullText = `${s1}${s2}${s3}${s4}`;
+      document.getElementById('final-comment-textarea').value = fullText;
+
+      document.getElementById('seg1-preview').textContent = s1 || '（未選擇）';
+      document.getElementById('seg1-len').textContent = `${s1.length}字`;
+
+      document.getElementById('seg2-preview').textContent = s2 || '（已略過）';
+      document.getElementById('seg2-len').textContent = `${s2.length}字`;
+
+      document.getElementById('seg3-preview').textContent = s3 || '（未選擇）';
+      document.getElementById('seg3-len').textContent = `${s3.length}字`;
+
+      document.getElementById('seg4-preview').textContent = s4 || '（無額外結語）';
+      document.getElementById('seg4-len').textContent = `${s4.length}字`;
+
+      updateLiveMetrics();
+    }
+
+    function handleManualTextareaEdit() {
+      updateLiveMetrics();
+    }
+
+    function detectQPSCharacters(text) {
+      const detected = [];
+      QPS_CHARACTERS.forEach(char => {
+        const hit = char.keywords.some(kw => text.includes(kw));
+        if (hit) detected.push(char);
+      });
+      return detected;
+    }
+
+    function updateLiveMetrics() {
+      const text = document.getElementById('final-comment-textarea').value;
+      const len = text.length;
+      const countEl = document.getElementById('char-count-num');
+      const barEl = document.getElementById('char-progress-bar');
+      const dotEl = document.getElementById('status-dot');
+      const bannerEl = document.getElementById('validation-banner');
+      const iconEl = document.getElementById('validation-icon');
+      const msgEl = document.getElementById('validation-msg');
+
+      countEl.textContent = len;
+      const pct = Math.min(100, Math.round((len / 100) * 100));
+      barEl.style.width = `${pct}%`;
+
+      const detectedChars = detectQPSCharacters(text);
+      const container = document.getElementById('detected-characters-container');
+      if (detectedChars.length > 0) {
+        container.innerHTML = detectedChars.map(c =>
+          `<span class="px-2 py-0.5 rounded-md text-xs font-extrabold text-white ${c.color} shadow-sm">${c.name}</span>`
+        ).join('');
+      } else {
+        container.innerHTML = `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 text-rose-700">⚠️ 尚未偵測到伊正品格關鍵字</span>`;
+      }
+
+      if (len > 100) {
+        countEl.className = 'text-xl font-black text-rose-400';
+        barEl.className = 'bg-rose-500 h-2 transition-all duration-200';
+        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-rose-400 animate-ping';
+        bannerEl.className = 'rounded-xl p-3 text-xs flex items-center justify-between gap-2 bg-rose-50 border border-rose-300 text-rose-800';
+        iconEl.textContent = '⚠️';
+        msgEl.textContent = `超出字數限制 ${len - 100} 字（連標點不可超過100字）！請點擊下方「✂️ 一鍵智能精簡字數」。`;
+      } else if (detectedChars.length === 0) {
+        countEl.className = 'text-xl font-black text-amber-400';
+        barEl.className = 'bg-amber-500 h-2 transition-all duration-200';
+        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-400';
+        bannerEl.className = 'rounded-xl p-3 text-xs flex items-center justify-between gap-2 bg-amber-50 border border-amber-300 text-amber-900';
+        iconEl.textContent = '💡';
+        msgEl.textContent = '字數合規，但尚未包含「18個伊正品格」詞彙，請於步驟 1 點選品格例句。';
+      } else {
+        countEl.className = 'text-xl font-black text-emerald-400';
+        barEl.className = len >= 90 ? 'bg-amber-400 h-2 transition-all duration-200' : 'bg-emerald-500 h-2 transition-all duration-200';
+        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        bannerEl.className = 'rounded-xl p-3 text-xs flex items-center justify-between gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800';
+        iconEl.textContent = '✅';
+        msgEl.textContent = `完美符合要求：已包含【${detectedChars.map(c => c.name).join('、')}】品格，連標點共 ${len} 字（餘 ${100 - len} 字空間）。`;
+      }
+    }
+
+    // =========================================================================
+    // SMART CONDENSER (一鍵智能精簡字數 <= 100字，支援 36服務生 + 20班務 + 84改善建議)
+    // =========================================================================
+    function smartCondenseText() {
+      let text = document.getElementById('final-comment-textarea').value;
+      const originalLen = text.length;
+
+      // Normalize "該生" to "其" when condensing to save characters
+      text = text.split('該生').join('其');
+
+      // Pass 1: Condense Class Duty + Service Leader + 84 Advice sentences
+      const replacementsPass1 = [
+        // --- 班務及其他職務 (20句) ---
+        ['本學年擔任班長，表現盡責，能妥善協助班主任處理班級事務，是老師的得力助手。', '任班長盡責，能妥善協助處理班務，是老師的得力助手。'],
+        ['作為班長，其具備良好的領導才能，能有效統籌班內各幹事的工作，帶動同學發揮團隊精神。', '任班長具領導才能，能有效統籌幹事工作並帶動團隊精神。'],
+        ['作為班長，他具備良好的領導才能，能有效統籌班內各幹事的工作，帶動同學發揮團隊精神。', '任班長具領導才能，能有效統籌幹事工作並帶動團隊精神。'],
+        ['作為班長，她具備良好的領導才能，能有效統籌班內各幹事的工作，帶動同學發揮團隊精神。', '任班長具領導才能，能有效統籌幹事工作並帶動團隊精神。'],
+        ['處事成熟穩重，能在老師不在課室時主動維持整體秩序，表現出色的自治能力與責任心。', '任班長成熟穩重，能主動維持課室秩序，具出色自治力與責任心。'],
+        ['擔任班長期間，其以身作則，盡心盡力為班級服務，深得老師及同學的信任與愛戴。', '任班長以身作則，盡心為班服務，深得師生信任與愛戴。'],
+        ['擔任班長期間，他以身作則，盡心盡力為班級服務，深得老師及同學的信任與愛戴。', '任班長以身作則，盡心為班服務，深得師生信任與愛戴。'],
+        ['擔任班長期間，她以身作則，盡心盡力為班級服務，深得老師及同學的信任與愛戴。', '任班長以身作則，盡心為班服務，深得師生信任與愛戴。'],
+        ['期間處事細心，能準確點齊及派發課業，並妥善記錄未交名單，大大減輕老師的行政負擔。', '處事細心，能準確點齊收發課業及記錄名單，減輕老師負擔。'],
+        ['主動於課前帶領同學朗讀，有效營造積極的學習氣氛，表現值得讚賞。', '主動於課前帶領同儕朗讀，營造積極學習氣氛，表現可嘉。'],
+        ['樂於發揮同儕互助精神，耐心協助該科成績較遜色的同學，服務精神可嘉。', '樂於發揮互助精神，耐心協助同儕解決課業困難，服務可嘉。'],
+        ['做事具敏銳的觀察力，能細心留意並向老師匯報同學的課業表現異常情況，是老師的良好溝通橋樑。', '觀察敏銳，能細心留意並向老師匯報同儕課業情況，是良好橋樑。'],
+        ['擔任午膳長表現盡責，能妥善協助派發飯盒，並有效維持排隊洗手及進食時的良好紀律。', '任午膳長盡責，能妥善協助派飯並維持洗手及進食紀律。'],
+        ['熱心指導同學清理桌面及收拾垃圾，積極培養同儕的自理能力，確保課室環境衛生。', '任午膳長熱心指導同儕清理桌面及垃圾，確保課室衛生。'],
+        ['作為午膳長，其能細心留意同學的進食情況，適時提醒同學避免浪費，具備良好的珍惜食物意識。', '任午膳長細心留意同儕進食情況，適時提醒惜食免浪費。'],
+        ['作為午膳長，他能細心留意同學的進食情況，適時提醒同學避免浪費，具備良好的珍惜食物意識。', '任午膳長細心留意同儕進食情況，適時提醒惜食免浪費。'],
+        ['作為午膳長，她能細心留意同學的進食情況，適時提醒同學避免浪費，具備良好的珍惜食物意識。', '任午膳長細心留意同儕進食情況，適時提醒惜食免浪費。'],
+        ['在午膳時段展現出色的管理能力，確保全班同學的午膳過程安全、整潔且有序，做事認真可靠。', '任午膳長管理出色，確保全班午膳安全整潔有序，認真可靠。'],
+        ['擔任IT長期間表現稱職，能妥善管理課室的電子白板，確保設備運作順暢，是老師的好幫手。', '任IT長稱職，能妥善管理電子白板使運作順暢，是好幫手。'],
+        ['做事細心具環保意識，能確實執行下課後檢查及關閉全數電子設備的職務，愛護公物。', '任IT長細心具環保意識，下課後確實檢查及關閉電子設備。'],
+        ['作為IT長，其能熟練且主動地預先開啟當天課堂需要的電子課本及教具，有效提升了課堂效率。', '任IT長熟練主動預開課堂電子課本及教具，有效提升課堂效率。'],
+        ['作為IT長，他能熟練且主動地預先開啟當天課堂需要的電子課本及教具，有效提升了課堂效率。', '任IT長熟練主動預開課堂電子課本及教具，有效提升課堂效率。'],
+        ['作為IT長，她能熟練且主動地預先開啟當天課堂需要的電子課本及教具，有效提升了課堂效率。', '任IT長熟練主動預開課堂電子課本及教具，有效提升課堂效率。'],
+        ['熱心服務班級，認真履行IT長職責，確保課堂資訊科技設備隨時處於備用狀態，值得嘉許。', '認真履行IT長職責，確保課室資訊設備隨時備用，值得嘉許。'],
+        ['擔任康樂大使做事有條理，能妥善管理及收拾課室的遊戲箱，並推動同學養成物歸原處的良好習慣。', '任康樂大使有條理，妥善管理課室遊戲箱並推動同儕物歸原處。'],
+        ['具備強烈的責任心，會定期仔細檢視各項桌上遊戲的使用狀況，主動留意是否有缺漏或損耗。', '任康樂大使具責任心，定期仔細檢視桌遊狀況並留意缺漏損耗。'],
+        ['作為康樂大使，其默默為班級付出，確保共用的康樂資源狀態良好，讓同學能享受優質的小息時光。', '任康樂大使確保共用康樂資源良好，讓同儕享受優質小息。'],
+        ['作為康樂大使，他默默為班級付出，確保共用的康樂資源狀態良好，讓同學能享受優質的小息時光。', '任康樂大使確保共用康樂資源良好，讓同儕享受優質小息。'],
+        ['作為康樂大使，她默默為班級付出，確保共用的康樂資源狀態良好，讓同學能享受優質的小息時光。', '任康樂大使確保共用康樂資源良好，讓同儕享受優質小息。'],
+        ['做事細心盡責，積極維護班內的康樂設施，為課室營造了和諧、歡樂的課餘氣氛，表現優良。', '任康樂大使細心維護班內康樂設施，營造歡樂課餘氣氛。'],
+
+        // --- 校內服務生 (36句) ---
+        ['擔任領袖生期間表現盡責，能妥善代表老師維持校園秩序，表現出色的領導才能。', '任領袖生盡責，能代表老師維持秩序，具領導才能。'],
+        ['作為領袖生，其能以身作則，帶領同學盡伊小學生的責任，充分實踐「修己善群」的精神。', '任領袖生能以身作則，帶領同儕實踐「修己善群」精神。'],
+        ['作為領袖生，他能以身作則，帶領同學盡伊小學生的責任，充分實踐「修己善群」的精神。', '任領袖生能以身作則，帶領同儕實踐「修己善群」精神。'],
+        ['作為領袖生，她能以身作則，帶領同學盡伊小學生的責任，充分實踐「修己善群」的精神。', '任領袖生能以身作則，帶領同儕實踐「修己善群」精神。'],
+        ['在執行領袖生職務時態度認真，積極協助老師維持秩序，是老師的得力助手。', '任領袖生認真維持秩序，是老師的得力助手。'],
+        ['具備良好的服務意識，能有效帶領同學遵守校規，發揮「修己善群」的正面影響力。', '任領袖生能帶領同學守規，發揮「修己善群」精神。'],
+        ['熱心擔任中文大使，積極協助老師推行中文科學習活動，對推廣校園中文學習氣氛有顯著貢獻。', '熱心任中文大使助推中文活動，積極推廣學習氣氛。'],
+        ['具備耐心與親和力，能循循善誘地教導同學閱讀中文故事書，有效提升同學的閱讀興趣。', '任中文大使具耐心，循循善誘教導同學閱讀中文故事書。'],
+        ['在帶領同學利用iPad進行中文遊戲學習時表現投入，能生動地引導同學在遊戲中學習中文。', '任中文大使投入帶領同儕以iPad遊戲愉快學中文。'],
+        ['作為中文大使，其樂於助人，積極投入各項中文科學習活動的推行，並悉心指導同學閱讀，服務精神可嘉。', '任中文大使積極助推中文活動並悉心指導閱讀，服務可嘉。'],
+        ['作為中文大使，他樂於助人，積極投入各項中文科學習活動的推行，並悉心指導同學閱讀，服務精神可嘉。', '任中文大使積極助推中文活動並悉心指導閱讀，服務可嘉。'],
+        ['作為中文大使，她樂於助人，積極投入各項中文科學習活動的推行，並悉心指導同學閱讀，服務精神可嘉。', '任中文大使積極助推中文活動並悉心指導閱讀，服務可嘉。'],
+        ['積極投入英文大使的工作，主動協助老師推行英文科學習活動，展現對英語學習的熱忱。', '積極任英文大使助推英文科活動，展現英語學習熱忱。'],
+        ['極具愛心，能友善地陪伴低年級同學閱讀英文故事書，幫助學弟妹建立對英語的自信。', '任英文大使富愛心，友善伴讀低年級英文書以建立其自信。'],
+        ['在帶領低年級同學進行英文遊戲時表現活潑，能有效帶動活動氣氛，讓同學在歡樂中學習。', '任英文大使活潑帶領低年級英文遊戲，讓同儕在歡樂中學習。'],
+        ['本學年擔任英文大使期間表現盡責，樂意付出時間陪伴學弟妹閱讀及遊戲，大力協助推展英文學習活動。', '任英文大使盡責，樂於伴讀及帶領遊戲以推展英文活動。'],
+        ['擔任數學大使表現出色，能主動帶領同學以遊戲形式進行活動，讓數學學習變得生動有趣。', '任數學大使出色，主動帶領數學遊戲，讓學習生動有趣。'],
+        ['具備良好的數理與解難能力，樂於教導同學利用電子工具進行有趣的學習，成效顯著。', '任數學大使具解難力，樂於教導同儕用電子工具趣味學習。'],
+        ['作為數學大使，其熱心協助同學擴闊數學知識領域，激發了同儕對探究數學的興趣。', '任數學大使熱心擴闊同儕數學視野，激發探究興趣。'],
+        ['作為數學大使，他熱心協助同學擴闊數學知識領域，激發了同儕對探究數學的興趣。', '任數學大使熱心擴闊同儕數學視野，激發探究興趣。'],
+        ['作為數學大使，她熱心協助同學擴闊數學知識領域，激發了同儕對探究數學的興趣。', '任數學大使熱心擴闊同儕數學視野，激發探究興趣。'],
+        ['能善用電子工具及遊戲活動引導同學學習數學，認真履行數學大使職責，表現值得讚賞。', '任數學大使善用電子工具及遊戲引導同儕學數學，表現可嘉。'],
+        ['擔任小老師期間展現無比耐性，能悉心教導低年級同學完成課業，發揮守望相助的精神。', '任小老師具耐性，悉心教導低年級完成課業，守望相助。'],
+        ['熱衷於知識分享，樂於教導低年級同學學習有趣知識，是學弟妹心目中的好榜樣。', '任小老師樂於教導低年級有趣知識，是學弟妹的好榜樣。'],
+        ['作為小老師，其指導學弟妹時態度親切溫和，能有效協助他們解決課業上的困難。', '任小老師態度親切溫和，有效協助學弟妹解決課業困難。'],
+        ['作為小老師，他指導學弟妹時態度親切溫和，能有效協助他們解決課業上的困難。', '任小老師態度親切溫和，有效協助學弟妹解決課業困難。'],
+        ['作為小老師，她指導學弟妹時態度親切溫和，能有效協助他們解決課業上的困難。', '任小老師態度親切溫和，有效協助學弟妹解決課業困難。'],
+        ['主動關懷低年級同學的學習進度，並提供適切的學業教導與知識啟發，盡責可靠。', '任小老師主動關懷低年級進度並提供教導與啟發，盡責可靠。'],
+        ['擔任體育領袖充滿幹勁，能妥善主持小息運動場，帶動校園的運動風氣。', '任體育領袖幹勁十足，妥善主持小息運動場，帶動運動風氣。'],
+        ['具備優秀的組織與協調能力，能有效協助同學進行各項體適能活動，表現出眾。', '任體育領袖具組織力，有效協助同儕進行體適能活動。'],
+        ['在協調小息運動場的小遊戲時，其處事公平公正，確保同學能在安全的環境下享受運動樂趣。', '任體育領袖公平協調小息遊戲，讓同儕安全享受運動樂趣。'],
+        ['在協調小息運動場的小遊戲時，他處事公平公正，確保同學能在安全的環境下享受運動樂趣。', '任體育領袖公平協調小息遊戲，讓同儕安全享受運動樂趣。'],
+        ['在協調小息運動場的小遊戲時，她處事公平公正，確保同學能在安全的環境下享受運動樂趣。', '任體育領袖公平協調小息遊戲，讓同儕安全享受運動樂趣。'],
+        ['作為體育領袖，其熱心推廣體育活動，積極帶領同學參與體適能訓練及遊戲，充滿正能量。', '任體育領袖積極帶領體適能訓練及遊戲，充滿正能量。'],
+        ['作為體育領袖，他熱心推廣體育活動，積極帶領同學參與體適能訓練及遊戲，充滿正能量。', '任體育領袖積極帶領體適能訓練及遊戲，充滿正能量。'],
+        ['作為體育領袖，她熱心推廣體育活動，積極帶領同學參與體適能訓練及遊戲，充滿正能量。', '任體育領袖積極帶領體適能訓練及遊戲，充滿正能量。'],
+        ['擔任遊戲大使表現活躍，能於小息及午膳時間熱心帶領同學進行各類遊戲活動。', '任遊戲大使表現活躍，於小息及午膳熱心帶領各類遊戲。'],
+        ['性格開朗外向，在帶領遊戲活動時能迅速凝聚同學，為校園營造歡樂和諧的氣氛。', '任遊戲大使開朗外向，帶領遊戲時能凝聚同儕並營造歡樂氣氛。'],
+        ['犧牲個人小息及午膳時間，積極投入遊戲大使職務，為同學帶領多樣化的遊戲活動。', '於小息及午膳積極投入遊戲大使職務，帶領多元化遊戲。'],
+        ['作為遊戲大使，其具備良好的帶領技巧，能鼓勵不同性格的同學參與遊戲，促進同儕互動。', '任遊戲大使善於鼓勵不同性格同學參與遊戲，促進同儕互動。'],
+        ['作為遊戲大使，他具備良好的帶領技巧，能鼓勵不同性格的同學參與遊戲，促進同儕互動。', '任遊戲大使善於鼓勵不同性格同學參與遊戲，促進同儕互動。'],
+        ['作為遊戲大使，她具備良好的帶領技巧，能鼓勵不同性格的同學參與遊戲，促進同儕互動。', '任遊戲大使善於鼓勵不同性格同學參與遊戲，促進同儕互動。'],
+        ['具備豐富的資訊科技知識，擔任IT小先鋒期間，能有效教導同學運用有趣的學習軟件進行活動。', '任IT小先鋒具資訊素養，能有效教導同儕運用有趣學習軟件。'],
+        ['熱心推廣數碼學習，樂於分享操作技巧，協助同學在學習軟件中發掘樂趣，表現優良。', '任IT小先鋒熱心分享操作技巧，助同儕於學習軟件發掘樂趣。'],
+        ['作為IT小先鋒，其指導同學運用學習軟件時極具耐性，能清晰講解操作步驟，是老師的好幫手。', '任IT小先鋒耐心指導同儕運用學習軟件，是老師的好幫手。'],
+        ['作為IT小先鋒，他指導同學運用學習軟件時極具耐性，能清晰講解操作步驟，是老師的好幫手。', '任IT小先鋒耐心指導同儕運用學習軟件，是老師的好幫手。'],
+        ['作為IT小先鋒，她指導同學運用學習軟件時極具耐性，能清晰講解操作步驟，是老師的好幫手。', '任IT小先鋒耐心指導同儕運用學習軟件，是老師的好幫手。'],
+        ['積極參與資訊科技推廣服務，善用有趣的軟件引導同學進行互動學習，展現出色的資訊素養。', '任IT小先鋒善用有趣軟件引導互動學習，資訊素養出色。'],
+        ['擔任圖書館管理員表現盡責，能有條不紊地協助老師管理學校圖書館，維持良好的閱讀環境。', '任圖書館管理員盡責，有條不紊地助管圖書館及維持環境。'],
+        ['服務態度友善，能熱心幫助同學借閱圖書，並積極推廣各項閱書活動。', '任圖書館管理員態度友善，熱心協助借閱及推廣閱書活動。'],
+        ['作為圖書館管理員，其對圖書管理工作一絲不苟，積極協助閱書活動的進行，值得嘉許。', '任圖書館管理員工作一絲不苟，積極協助閱書活動，可嘉。'],
+        ['作為圖書館管理員，他對圖書管理工作一絲不苟，積極協助閱書活動的進行，值得嘉許。', '任圖書館管理員工作一絲不苟，積極協助閱書活動，可嘉。'],
+        ['作為圖書館管理員，她對圖書管理工作一絲不苟，積極協助閱書活動的進行，值得嘉許。', '任圖書館管理員工作一絲不苟，積極協助閱書活動，可嘉。'],
+        ['熱愛閱讀且樂於服務，在協助管理圖書館及帶領同學進行閱書活動上皆有出色表現。', '任圖書館管理員協助管理館務及帶領閱書活動皆表現出色。'],
+
+        // --- 步驟 3：84句改善建議精簡規則 ---
+        ['免於課間閑談及擺弄文具，定能提高學習效益，', '免於課間閑談及弄文具，'],
+        ['易受周遭環境影響，若能加強自我克制，', '若能加強自制，'],
+        ['改善課堂偶爾心不在焉及小動作的情況，把專注力集中在學業上，', '改善心不在焉及小動作，專注學業，'],
+        ['收斂在課堂上過於活躍的表現，遵守課室規則，專心投入學習活動，', '收斂過於活躍表現，守規專心上課，'],
+        ['摒除課間擺弄文具或神遊物外的情況，時刻保持高度的課堂專注力，', '摒除擺弄文具或分神，保持課堂專注，'],
+        ['改善上課走神及隨便插話的習慣，培養耐心聆聽及舉手發言的課堂常規，', '改善走神及插話，培養耐心聆聽常規，'],
+        ['仔細辨字及審題，減少因粗心大意而引致的失誤，', '仔細審題以減少粗心失誤，'],
+        ['減少因字體潦草與粗心而引致的失誤，在空閒時多加練習書寫，務求端正整潔，', '勤練書寫務求端正，減少潦草與粗心失誤，'],
+        ['偶有欠帶課本及功課的情況，宜養成睡前仔細檢查書包的好習慣，', '宜養成睡前執拾書包習慣以防欠帶，'],
+        ['主動依時完成並遞交各項課業，切勿依賴他人督促，', '主動依時交齊課業，免賴督促，'],
+        ['養成完成後反覆核對答案的穩紮習慣，提升答題精準度，', '養成覆檢習慣以提升精準度，'],
+        ['即時認真訂正錯處並反思原因，定能避免重蹈覆轍，', '即時認真訂正並反思錯處，'],
+        ['遇有不明白的疑難宜主動向師長或同學發問求正，切勿積存疑惑，', '遇疑難宜主動發問求正，'],
+        ['建議在家中多大聲朗讀課文或報章，並配合電視新聞字幕辨認更多書面語，以改善咬字及表達，', '宜多朗讀課文並配合新聞字幕學書面語，改善表達，'],
+        ['惟個性較剛烈急躁，偶爾較易發脾氣，若能學習收斂脾氣，凡事忍讓並與師長議定冷靜方法，', '惟個性較急躁，若能收斂脾氣、凡事忍讓並學習冷靜，'],
+        ['與同學相處時宜避免作弄他人或因小事爭吵，學習以和平理性的方式溝通及解決摩擦，', '與同儕相處宜避免作弄或爭吵，學習理性溝通，'],
+        ['建議課餘可多參與球類、童軍或社區義工等群體活動，從中培養獨立解難及與人溝通的技巧，', '宜多參與童軍或球類等群體活動，培養解難與溝通技巧，'],
+        ['建議家長可與孩子共同編訂簡單規律的時間表，分段進行溫習，逐步培養其時間管理能力，', '宜編訂規律時間表分段溫習，培養時間管理，'],
+        ['做到「溫習時專心溫習，遊戲時盡情遊戲」的規律作息，', '做到溫習與遊戲分明的規律作息，'],
+
+        // Standard phrases
+        ['除了珍惜他人的付出外，更願意報以行動表達謝意，', '惜福並以行動道謝，'],
+        ['除了懂得自省並付諸具體改善外，亦', '懂自省改善，亦'],
+        ['除了懂得自省，坦然面對挫折，亦', '懂自省並坦然面對挫折，亦'],
+        ['善於給予同儕支持與關懷，', '善於關懷支持同儕，'],
+        ['善於表達關懷及鼓勵他人，', '善於關懷鼓勵同儕，'],
+        ['善於表達關懷及鼓勵，', '善於關懷鼓勵同儕，'],
+        ['能客觀地表達個人意見，不因同儕親疏而有所偏倚，', '處事客觀不偏倚，'],
+        ['能客觀地表達意見，不因同儕親疏而有所偏袒，', '言論客觀不偏袒，'],
+        ['觀其視藝作品與課堂問答，常有別出心裁的想法，', '視藝與問答常有巧思，'],
+        ['減少因粗心大意而引致的失誤，', '減少粗心失誤，'],
+        ['減少因粗心而引致的失誤，', '減少粗心失誤，'],
+        ['培養審慎的答題與覆檢策略，', '培養審慎覆檢習慣，'],
+        ['培養審慎的答題策略，', '培養審慎答題策略，'],
+        ['在課堂上保持專注和積極求知的態度，', '上課保持專注積極，'],
+        ['在課堂上保持專注，', '上課保持專注，'],
+        ['及時疏導個人壓力或是負面情緒，', '及時疏導壓力與情緒，'],
+        ['及時疏導個人壓力與負面情緒，', '及時疏導壓力，'],
+        ['積極鞏固新知與舊識，', '鞏固新舊知識，'],
+        ['令人眼前一亮。', '表現亮眼。'],
+        ['讓人眼前一亮。', '表現亮眼。'],
+        ['讓人非常温暖。', '令人温暖。'],
+        ['值得欣賞。', '可嘉。'],
+        ['值得讚賞。', '可嘉。'],
+        ['值得嘉許。', '可嘉。'],
+        ['非常可貴。', '可貴。'],
+        ['實屬難得。', '難得。'],
+        ['值得信賴。', '可信賴。']
+      ];
+
+      replacementsPass1.forEach(([from, to]) => {
+        text = text.split(from).join(to);
+      });
+
+      // Pass 2: Further tightening if still > 100 chars
+      const replacementsPass2 = [
+        ['品性純良且兼具', '兼具'],
+        ['品性純良且懂得', '懂得'],
+        ['品性純良且具', '具'],
+        ['為人真誠且擁有', '具真誠與'],
+        ['為人真誠且富', '具真誠與'],
+        ['喜見其在同儕與家人的扶持下，', '喜見其'],
+        ['喜見其在同儕的扶持下，', '喜見其'],
+        ['喜見她於家人的支持下，', '喜見其'],
+        ['更進一步邁向', '邁向'],
+        ['必能進一步', '必能'],
+        ['定能更進一步。', '定能再進。'],
+        ['其成績必迎來突破。', '成績必有突破。'],
+        ['定能成品學兼優的學生。', '定能品學兼優。'],
+        ['必能邁向更均衡的全人發展。', '邁向全人發展。'],
+        ['校園生活定能更趨豐盛。', '生活更趨豐盛。'],
+        ['學習成效定能更佳。', '成效更佳。'],
+        ['成績定必再進。', '成績必再進。'],
+        ['成績必能再進。', '成績必再進。'],
+        ['成績進步可期。', '進步可期。'],
+        ['成績可望再進。', '成績可再進。']
+      ];
+
+      if (text.length > 100 || text.length === originalLen) {
+        replacementsPass2.forEach(([from, to]) => {
+          text = text.split(from).join(to);
+        });
+      }
+
+      document.getElementById('final-comment-textarea').value = text;
+      updateLiveMetrics();
+
+      const savedChars = originalLen - text.length;
+      if (savedChars > 0) {
+        showToast(`✂️ 已智能精簡 ${savedChars} 字！目前共 ${text.length} 字。`);
+      } else {
+        showToast(`✨ 目前評語已相當凝練（${text.length}字）。`);
+      }
+    }
+
+    // =========================================================================
+    // ARCHETYPES & 2627 SAMPLES RENDERERS
+    // =========================================================================
+    function renderArchetypeCards() {
+      const query = (document.getElementById('archetype-search')?.value || '').trim().toLowerCase();
+      const grid = document.getElementById('converter-cards-grid');
+
+      const filtered = ARCHETYPE_CONVERSIONS.filter(item => {
+        if (!query) return true;
+        return item.title.toLowerCase().includes(query) ||
+               item.oldText.toLowerCase().includes(query) ||
+               item.tags.some(t => t.toLowerCase().includes(query));
+      });
+
+      grid.innerHTML = filtered.map(item => {
+        const previewText = formatTemplate(`${item.step1}${item.step2}${item.step3}${item.step4}`);
+        return `
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 flex flex-col justify-between space-y-3 hover:border-teal-400 transition">
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-extrabold text-teal-900 bg-teal-100 px-2.5 py-1 rounded-lg">${item.title}</span>
+                <div class="flex items-center gap-1">
+                  ${item.tags.map(t => `<span class="text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md">${t}</span>`).join('')}
+                </div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-500">
+                <span class="font-bold text-slate-400 block mb-0.5">《班別_評語資料庫》原句摘錄：</span>
+                「${item.oldText}」
+              </div>
+              <div class="p-3 rounded-xl bg-teal-50/70 border border-teal-200 text-xs sm:text-sm text-slate-800 serif-text leading-relaxed">
+                <div class="flex items-center justify-between mb-1 font-sans">
+                  <span class="font-bold text-teal-800 text-xs">✨ 伊正品格雅言版（含：${item.qpsChar}）：</span>
+                  <span class="text-[11px] font-bold text-emerald-700">${previewText.length}字</span>
+                </div>
+                ${previewText}
+              </div>
+            </div>
+            <button onclick="applyArchetype('${item.id}')" class="w-full py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-sm transition">
+              ⚡ 套用此畫像至工作台
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function applyArchetype(archId) {
+      const item = ARCHETYPE_CONVERSIONS.find(a => a.id === archId);
+      if (!item) return;
+      selectedSegments[1] = item.step1;
+      selectedSegments[2] = item.step2;
+      selectedSegments[3] = item.step3;
+      selectedSegments[4] = item.step4;
+      reAssembleFromSteps();
+      closeQuickArchetypeModal();
+      switchMainView('builder');
+      showToast(`已套用「${item.title}」評語模板！`);
+    }
+
+    function openQuickArchetypeModal() {
+      const modal = document.getElementById('quick-modal');
+      const listEl = document.getElementById('modal-archetype-list');
+      listEl.innerHTML = ARCHETYPE_CONVERSIONS.map(item => {
+        const previewText = formatTemplate(`${item.step1}${item.step2}${item.step3}${item.step4}`);
+        return `
+          <div onclick="applyArchetype('${item.id}')" class="p-3.5 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/40 cursor-pointer transition space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-teal-900">${item.title}</span>
+              <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">${previewText.length}字</span>
+            </div>
+            <p class="text-xs text-slate-600 line-clamp-2 serif-text">${previewText}</p>
+          </div>
+        `;
+      }).join('');
+      modal.classList.remove('hidden');
+    }
+
+    function closeQuickArchetypeModal() {
+      document.getElementById('quick-modal').classList.add('hidden');
+    }
+
+    function render2627Samples() {
+      const query = document.getElementById('sample-search-input').value.trim().toLowerCase();
+      const grid = document.getElementById('samples-2627-grid');
+
+      const filtered = SAMPLES_2627.filter(item => {
+        if (!query) return true;
+        return item.name.toLowerCase().includes(query) ||
+               item.text.toLowerCase().includes(query) ||
+               item.chars.some(c => c.toLowerCase().includes(query));
+      });
+
+      grid.innerHTML = filtered.map((item) => {
+        const len = item.text.length;
+        const isOver = len > 100;
+        const encodedText = encodeURIComponent(item.text);
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-teal-400 transition flex flex-col justify-between space-y-2.5">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="font-bold text-sm text-slate-800">${item.name}</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">${item.term}</span>
+                  ${item.chars.map(c => `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">${c}</span>`).join('')}
+                </div>
+                <span class="text-xs font-bold ${isOver ? 'text-amber-600' : 'text-emerald-600'}">${len}字</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-700 serif-text leading-relaxed">${item.text}</p>
+            </div>
+            <div class="flex items-center justify-end space-x-2 pt-1 border-t border-slate-100">
+              <button onclick="loadSampleIntoWorkspace('${item.name}', decodeURIComponent('${encodedText}'), false)"
+                class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                載入原句
+              </button>
+              ${isOver ? `
+                <button onclick="loadSampleIntoWorkspace('${item.name}', decodeURIComponent('${encodedText}'), true)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition">
+                  ✂️ 載入並精簡至≤100字
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadSampleIntoWorkspace(name, text, autoCondense) {
+      document.getElementById('student-name').value = name;
+      document.getElementById('final-comment-textarea').value = text;
+      switchMainView('builder');
+      if (autoCondense) {
+        smartCondenseText();
+      } else {
+        updateLiveMetrics();
+        showToast(`已載入「${name}」的班評範例`);
+      }
+    }
+
+    // =========================================================================
+    // SAVED CLASS LIST MANAGEMENT & EXPORT
+    // =========================================================================
+    function saveToClassList() {
+      const name = document.getElementById('student-name').value.trim() || '未命名';
+      const text = document.getElementById('final-comment-textarea').value.trim();
+      if (!text) return;
+
+      const detected = detectQPSCharacters(text).map(c => c.name);
+      savedClassList.unshift({
+        name,
+        chars: detected.length ? detected : ['未標註'],
+        text
+      });
+
+      renderSavedList();
+      showToast(`💾 已將「${name}」的評語存入班級名單！`);
+    }
+
+    function renderSavedList() {
+      document.getElementById('saved-count-badge').textContent = savedClassList.length;
+      const container = document.getElementById('saved-list-container');
+
+      if (savedClassList.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">尚未儲存任何學生評語，請於工作台點擊「💾 存入班級名單」。</div>`;
+        return;
+      }
+
+      container.innerHTML = savedClassList.map((item, idx) => {
+        const len = item.text.length;
+        const encodedText = encodeURIComponent(item.text);
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold text-slate-400">#${savedClassList.length - idx}</span>
+                <span class="font-bold text-sm text-slate-800">${item.name}</span>
+                ${item.chars.map(c => `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-teal-100 text-teal-800">${c}</span>`).join('')}
+                <span class="text-xs font-bold ${len <= 100 ? 'text-emerald-600' : 'text-rose-600'}">(${len}字)</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-700 serif-text">${item.text}</p>
+            </div>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="copyTextDirect(decodeURIComponent('${encodedText}'))" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-medium text-slate-700">
+                複製
+              </button>
+              <button onclick="removeSavedItem(${idx})" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-xs font-medium text-rose-600">
+                刪除
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeSavedItem(idx) {
+      savedClassList.splice(idx, 1);
+      renderSavedList();
+    }
+
+    function clearSavedList() {
+      savedClassList = [];
+      renderSavedList();
+      showToast('已清空班級名單');
+    }
+
+    function copyAllSavedComments() {
+      if (savedClassList.length === 0) return;
+      const lines = savedClassList.map(item => `${item.name}（${item.chars.join('、')}｜${item.text.length}字）：\n${item.text}`).join('\n\n');
+      copyTextDirect(lines);
+    }
+
+    function exportSavedToCSV() {
+      if (savedClassList.length === 0) return;
+      let csv = '\uFEFF學生姓名,包含伊正品格,連標點字數,期末評語內容\n';
+      savedClassList.forEach(item => {
+        const safeText = item.text.replace(/"/g, '""');
+        csv += `"${item.name}","${item.chars.join('、')}",${item.text.length},"${safeText}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '伊正品格_期末班級評語名單.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('📥 已匯出 CSV 檔案！');
+    }
+
+    // =========================================================================
+    // UTILITIES & VIEW NAVIGATION
+    // =========================================================================
+    function switchMainView(viewName) {
+      ['builder', 'converter', 'saved'].forEach(v => {
+        const viewEl = document.getElementById(`view-${v}`);
+        const navBtn = document.getElementById(`nav-${v}`);
+        if (v === viewName) {
+          viewEl.classList.remove('hidden');
+          navBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-bold bg-white text-teal-900 shadow transition flex items-center space-x-1';
+        } else {
+          viewEl.classList.add('hidden');
+          navBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-medium bg-teal-800/70 hover:bg-teal-700 text-teal-100 border border-teal-600/50 transition flex items-center space-x-1';
+        }
+      });
+    }
+
+    function resetAllSelections() {
+      selectedSegments = {
+        1: '{name}品性純良且兼具同理心，善於給予同儕支持與關懷，值得欣賞。',
+        2: '{pronoun}本學年擔任班長，表現盡責，能妥善協助班主任處理班級事務，是老師的得力助手。',
+        3: '若能在課堂上保持專注，免於課間閑談及擺弄文具，定能提高學習效益，',
+        4: '成績必能再進。'
+      };
+      selectCharacter('empathy');
+      renderStep2Sentences();
+      renderStep3Sentences();
+      renderStep4Sentences();
+      reAssembleFromSteps();
+      showToast('已重設為預設配搭範例');
+    }
+
+    function copyFinalComment() {
+      const text = document.getElementById('final-comment-textarea').value;
+      copyTextDirect(text);
+    }
+
+    function copyTextDirect(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 已複製評語到剪貼簿！');
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2600);
+    }
+  </script>
+</body>
+</html>
